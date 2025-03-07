@@ -1,16 +1,35 @@
+mod assets;
+mod handlers;
+mod models;
+mod utils;
+
 use std::path::Path;
 
-pub fn pretty_path(path: &Path) -> String {
-    #[cfg(target_os = "windows")]
-    {
-        let mut path_str = path.to_str().unwrap().to_owned();
-        if let Some(p) = path_str.strip_prefix(r"\\?\") {
-            path_str = p.to_string()
-        }
-        path_str
-    }
-    #[cfg(not(target_os = "windows"))]
-    {
-        path.to_str().unwrap().to_owned()
-    }
+use actix_web::{web, App, HttpServer};
+use handlers::{download, index, load_files};
+use models::AppState;
+use utils::pretty_path;
+
+#[actix_web::main]
+pub async fn run(port: u16, path: &Path) -> std::io::Result<()> {
+    let path = path.canonicalize()?;
+
+    println!(
+        "serving \x1b[33m{}\x1b[0m on port \x1b[33m{}\x1b[0m",
+        pretty_path(&path),
+        port
+    );
+
+    let state = web::Data::new(AppState { file_dir: path.to_path_buf() });
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(state.clone())
+            .service(load_files)
+            .service(download)
+            .default_service(web::get().to(index))
+    })
+    .bind(("localhost", port))?
+    .run()
+    .await
 }

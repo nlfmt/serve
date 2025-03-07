@@ -7,9 +7,9 @@ use std::{
 use actix_files::NamedFile;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use clap::{arg, Parser};
+use nlfmt_serve::pretty_path;
 use rust_embed::Embed;
 use serde::{Deserialize, Serialize};
-use serve::pretty_path;
 
 #[derive(Embed)]
 #[folder = "assets"]

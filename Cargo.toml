@@ -1,0 +1,18 @@
+[package]
+name = "serve"
+version = "0.1.0"
+description = "quickly serve files from a directory in your local network"
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/nlfmt/serve"
+repository = "https://github.com/nlfmt/serve"
+edition = "2021"
+keywords = ["serve", "file-server"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+actix-files = "0.6.6"
+actix-web = "4.9.0"
+clap = { version = "4.5.31", features = ["derive"] }
+rust-embed = "8.6.0"
+serde = { version = "1.0.218", features = ["derive"] }

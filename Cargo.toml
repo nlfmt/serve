@@ -1,5 +1,5 @@
 [package]
-name = "serve"
+name = "nlfmt-serve"
 version = "0.1.0"
 description = "quickly serve files from a directory in your local network"
 readme = "README.md"
@@ -9,6 +9,9 @@ repository = "https://github.com/nlfmt/serve"
 edition = "2021"
 keywords = ["serve", "file-server"]
 categories = ["command-line-utilities"]
+
+[[bin]]
+name = "serve"
 
 [dependencies]
 actix-files = "0.6.6"

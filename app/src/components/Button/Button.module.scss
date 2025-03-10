@@ -1,0 +1,24 @@
+.button {
+    background-color: var(--primary);
+    color: black;
+    border-radius: 8px;
+    padding-inline: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    height: 100%;
+    
+    &[data-variant=secondary] {
+        background-color: var(--bg-highlight);
+        color: var(--text);
+    }
+    
+    &:hover {
+        filter:brightness(1.1)
+    }
+    
+    &[data-size=small] {
+        font-size: 10px;
+        padding-inline: 4px;
+    }
+}

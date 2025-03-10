@@ -1,11 +1,17 @@
 use std::{
+    fmt::Display,
     fs,
-    path::{Path, PathBuf},
+    os::windows::fs::MetadataExt,
+    path::{Component, Path, PathBuf},
+    time::UNIX_EPOCH,
 };
 
-use crate::models::DirectoryContent;
+use actix_multipart::Field;
+use anyhow::Error;
 
-pub fn pretty_path(path: &Path) -> String {
+use crate::models::{DirectoryContent, FileInfo, FolderInfo};
+
+pub fn pretty_path(path: &Path) -> impl Display {
     #[cfg(target_os = "windows")]
     {
         let mut path_str = path.to_str().unwrap().to_owned();
@@ -16,7 +22,7 @@ pub fn pretty_path(path: &Path) -> String {
     }
     #[cfg(not(target_os = "windows"))]
     {
-        path.to_str().unwrap().to_owned()
+        path.display()
     }
 }
 
@@ -26,30 +32,95 @@ pub fn read_entries(path: &Path) -> std::io::Result<DirectoryContent> {
             let entry = entry.ok()?;
             let file_name = entry.file_name().into_string().ok()?;
             let meta = entry.metadata().ok()?;
-            Some((file_name, meta.is_dir()))
+            Some((file_name, meta))
         })
-        .fold(DirectoryContent::default(), |mut res, (name, is_dir)| {
-            if is_dir {
-                res.dirs.push(name)
+        .fold(DirectoryContent::default(), |mut res, (name, meta)| {
+            let size = meta.file_size();
+            let modified = meta
+                .modified()
+                .ok()
+                .and_then(|v| Some(v.duration_since(UNIX_EPOCH).ok()?.as_secs()));
+            let created = meta
+                .created()
+                .ok()
+                .and_then(|v| Some(v.duration_since(UNIX_EPOCH).ok()?.as_secs()));
+            let is_symlink = meta.is_symlink();
+
+            if meta.is_dir() {
+                res.dirs.push(FolderInfo {
+                    name,
+                    modified,
+                    created,
+                    is_symlink,
+                })
             } else {
-                res.files.push(name);
+                res.files.push(FileInfo {
+                    name,
+                    size,
+                    modified,
+                    created,
+                    is_symlink,
+                });
             }
             res
         }))
 }
 
-pub fn parse_relative_path(root: &Path, path: &str) -> Result<PathBuf, String> {
-    if !path.starts_with("./") {
-        return Err("Path is not relative".to_string());
+pub fn parse_relative_path(root: &Path, path: &str) -> Option<PathBuf> {
+    let path = Path::new(path);
+    let components = path.components();
+    let mut stack = Vec::new();
+
+    for c in components {
+        match c {
+            Component::Prefix(_) => {
+                println!("has prefixl");
+                return None;
+            }
+            Component::CurDir | Component::RootDir => {}
+            Component::ParentDir => {
+                if stack.pop().is_none() {
+                    println!("moves out of root");
+                    return None;
+                }
+            }
+            Component::Normal(part) => {
+                stack.push(part.to_str()?);
+            }
+        }
     }
 
-    let path = root
-        .join(path)
-        .canonicalize()
-        .map_err(|_| String::from("Invalid Path"))?;
+    let joined = root.join(stack.join("/"));
 
-    match path.starts_with(root) {
-        true => Ok(path),
-        false => Err(String::from("Path is not relative to the root folder")),
+    Some(joined)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let root = Path::new("C:/test");
+        assert!(parse_relative_path(&root, "/abc/def").is_some());
+        assert!(parse_relative_path(&root, "./abc/def").is_some());
+        assert!(parse_relative_path(&root, r"\abc\def").is_some());
+        assert!(parse_relative_path(&root, r".\abc\def").is_some());
+        assert!(parse_relative_path(&root, "/abc/../def").is_some());
+        assert!(parse_relative_path(&root, "abc/../def").is_some());
+        assert!(parse_relative_path(&root, "abc/.././def/../def/../").is_some());
+
+        // prefixes should not be allowed
+        assert!(parse_relative_path(&root, "C:/abc/def").is_none());
+        assert!(parse_relative_path(&root, "D:/abc/def").is_none());
+
+        // paths that move beyond the root dir at any point should not be allowed
+        assert!(parse_relative_path(&root, "abc/../../def").is_none());
+        assert!(parse_relative_path(&root, "abc/.././def/../def/../../").is_none());
     }
+}
+
+pub async fn parse_string_field(field: &mut Field, max_size: usize) -> Option<String> {
+    let bytes = field.bytes(max_size).await.ok()?.ok()?.to_vec();
+    Some(String::from_utf8(bytes).ok()?)
 }

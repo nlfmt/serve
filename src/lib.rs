@@ -1,17 +1,17 @@
-mod assets;
+pub mod assets;
 mod handlers;
 mod models;
-mod utils;
+pub mod utils;
 
-use std::path::Path;
+use std::{path::Path, process::Command};
 
 use actix_web::{web, App, HttpServer};
-use handlers::{download, index, load_files};
+use handlers::{download_file, load_files, serve_embedded_file, upload_file};
 use models::AppState;
 use utils::pretty_path;
 
 #[actix_web::main]
-pub async fn run(port: u16, path: &Path) -> std::io::Result<()> {
+pub async fn run(port: u16, path: &Path) -> anyhow::Result<()> {
     let path = path.canonicalize()?;
 
     println!(
@@ -22,14 +22,29 @@ pub async fn run(port: u16, path: &Path) -> std::io::Result<()> {
 
     let state = web::Data::new(AppState { file_dir: path.to_path_buf() });
 
-    HttpServer::new(move || {
+    let server = HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
             .service(load_files)
-            .service(download)
-            .default_service(web::get().to(index))
+            .service(download_file)
+            .service(upload_file)
+            .default_service(web::get().to(serve_embedded_file))
     })
-    .bind(("localhost", port))?
-    .run()
-    .await
+    .bind(("0.0.0.0", port))?
+    .run();
+    
+    // run vite dev server in debug mode
+    if cfg!(debug_assertions) {
+        Command::new("powershell")
+            .arg("-c")
+            .arg("pnpm dev")
+            .current_dir(std::env::current_dir().unwrap().join("./app"))
+            .spawn()
+            .unwrap();
+    }
+    
+    Ok(server.await?)
 }
+
+
+// create a function that says hello

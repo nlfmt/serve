@@ -15,7 +15,13 @@ name = "serve"
 
 [dependencies]
 actix-files = "0.6.6"
+actix-multipart = "0.7.2"
 actix-web = "4.9.0"
+anyhow = "1.0.97"
 clap = { version = "4.5.31", features = ["derive"] }
+futures-util = "0.3.31"
+mime_guess = "2.0.5"
 rust-embed = "8.6.0"
 serde = { version = "1.0.218", features = ["derive"] }
+tokio = "1.44.0"
+vite-actix = "0.1.2"

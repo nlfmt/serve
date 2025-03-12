@@ -1,0 +1,123 @@
+@use "@/styles/mixins.scss" as mixins;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+    gap: 32px;
+    padding: 16px;
+    
+    .header {
+        display: flex;
+        gap: 16px;
+
+        .icon {
+            fill: var(--primary);
+        }
+    }
+    
+    .content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .dropZone {
+        background-color: var(--bg3);
+        border-radius: 8px;
+        border: 2px solid var(--divider);
+        flex-grow: 1;
+        cursor: pointer;
+        height: min(200px, 30vh);
+        
+        display: grid;
+        place-content: center;
+
+        text-align: center;
+        
+        &[data-drophover=true] {
+            outline: 4px dashed var(--primary);
+        }
+        
+        &:hover {
+            filter: brightness(1.1);
+        }
+    }
+    
+    .file {
+        padding: 12px 16px;
+        background-color: var(--bg3);
+        border: 2px solid var(--primary);
+        display: flex;
+        border-radius: 16px;
+        gap: 8px;
+        align-items: center;
+        overflow: hidden;
+        cursor: default;
+        
+        & > i {
+            width: 32px;
+            &::before {
+                font-size: 28px;
+            }
+        }
+
+        .fileInfo {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 14px;
+
+            & > span {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            
+            .fileSize {
+                color: var(--text-dark);
+                font-size: 12px;
+            }
+        }
+        
+        .clearButton {
+            margin-left: auto;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+
+            &:hover {
+                color: var(--primary);
+            }
+        }
+    }
+    
+    .path {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--text-dark);
+
+        .pathInput {
+            width: 100%;
+        }
+    }
+    
+    .buttons {
+        margin-top: auto;
+        display: flex;
+        align-items: stretch;
+        justify-content: flex-end;
+        height: 48px;
+        gap: 16px;
+        
+        & > button {
+            flex-grow: 1;
+            max-width: 150px;
+        }
+    }
+
+}

@@ -1,0 +1,41 @@
+
+.textField {
+  flex-shrink: 0;
+  background-color: var(--bg1);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  gap: 8px;
+  margin-left: auto;
+  width: 230px;
+  transition: width 200ms ease;
+  
+  & > svg {
+    width: 20px;
+    fill: var(--text-dark);
+    transition: all 100ms ease;
+  }
+
+  & input {
+    color: var(--text);
+    background: none;
+    border: none;
+    outline: none;
+    width: 100%;
+  }
+  
+  &:hover {
+    border-color: var(--text-dark);
+  }
+
+  &:focus-within {
+    border-color: var(--primary);
+    outline: 3px solid rgba(var(--primary-), 0.2);
+
+    & > svg {
+      fill: var(--primary);
+    }
+  }
+}

@@ -1,23 +1,24 @@
 use clap::{command, Parser};
+use nlfmt_serve::{run, ServeOptions};
 use std::path::Path;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-pub struct Args {
+struct ServeArgs {
     #[arg(short, long, default_value_t = 3000)]
-    port: u16,
+    pub port: u16,
     
     #[arg(short = 'u', long, default_value_t = false)]
-    allow_upload: bool,
+    pub allow_upload: bool,
     #[arg(short = 's', long, default_value_t = false)]
-    allow_symlinks: bool,
+    pub allow_symlinks: bool,
 
-    path: Option<String>,
+    pub path: Option<String>,
 }
 
-fn main() -> anyhow::Result<()> {
-    let args = Args::parse();
-    println!("{args:?}");
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let args = ServeArgs::parse();
 
     let path = match &args.path {
         Some(path) => Path::new(&path).to_owned(),
@@ -26,5 +27,10 @@ fn main() -> anyhow::Result<()> {
             .to_owned(),
     };
 
-    nlfmt_serve::run(args.port, &path)
+    run(ServeOptions {
+        path: &path,
+        port: args.port,
+        allow_symlinks: args.allow_symlinks,
+        allow_upload: args.allow_upload,
+    }).await
 }

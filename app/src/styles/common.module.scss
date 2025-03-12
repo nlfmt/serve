@@ -1,0 +1,13 @@
+@use "@/styles/mixins" as mixins;
+
+.hideOnMobile {
+    @include mixins.mobile {
+        display: none;
+    }
+}
+
+.hideOnTablet {
+    @include mixins.tablet {
+        display: none;
+    }
+}

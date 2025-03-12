@@ -6,9 +6,6 @@ use std::{
     time::UNIX_EPOCH,
 };
 
-use actix_multipart::Field;
-use anyhow::Error;
-
 use crate::models::{DirectoryContent, FileInfo, FolderInfo};
 
 pub fn pretty_path(path: &Path) -> impl Display {
@@ -74,13 +71,11 @@ pub fn parse_relative_path(root: &Path, path: &str) -> Option<PathBuf> {
     for c in components {
         match c {
             Component::Prefix(_) => {
-                println!("has prefixl");
                 return None;
             }
             Component::CurDir | Component::RootDir => {}
             Component::ParentDir => {
                 if stack.pop().is_none() {
-                    println!("moves out of root");
                     return None;
                 }
             }
@@ -118,9 +113,4 @@ mod tests {
         assert!(parse_relative_path(&root, "abc/../../def").is_none());
         assert!(parse_relative_path(&root, "abc/.././def/../def/../../").is_none());
     }
-}
-
-pub async fn parse_string_field(field: &mut Field, max_size: usize) -> Option<String> {
-    let bytes = field.bytes(max_size).await.ok()?.ok()?.to_vec();
-    Some(String::from_utf8(bytes).ok()?)
 }

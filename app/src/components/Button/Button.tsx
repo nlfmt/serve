@@ -5,14 +5,14 @@ import c from "./Button.module.scss"
 namespace Button {
   export interface Props extends ComponentProps<"button"> {
     variant?: "primary" | "secondary"
-    size?: "normal" | "small" | "large"
+    size?: "medium" | "small" | "large"
   }
 }
 
 function Button({
   className,
   variant = "primary",
-  size = "normal",
+  size = "medium",
   ...props
 }: Button.Props) {
   return (

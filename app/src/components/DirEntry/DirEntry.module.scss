@@ -1,3 +1,5 @@
+@use "@/styles/mixins" as mixins;
+
 .entry {
   background-color: var(--bg2);
   padding: 8px 8px;
@@ -12,22 +14,18 @@
   text-decoration: none;
   color: var(--text);
   cursor: pointer;
+  position: relative;
 
-  grid-template-columns: 24px 3fr 2fr 2fr 2fr 1fr; 
-  @media (max-width: 600px) {
-    grid-template-columns: 24px 3fr 2fr 2fr 1fr; 
-
-    .hideOnTablet {
-      display: none;
-    }
-  }
+  @include mixins.table-layout;
   
-  @media (max-width: 450px) {
-    grid-template-columns: 24px 3fr 2fr 1fr; 
-
-    .hideOnMobile {
-      display: none;
-    }
+  &.dropHover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    outline: 4px dashed var(--primary);
+    outline-offset: 4px;
+    z-index: 2;
   }
   
 
@@ -43,6 +41,12 @@
       fill: var(--text-dark);
       width: 18px;
     }
+  }
+  
+  & .fileName {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   & .info {

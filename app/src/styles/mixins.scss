@@ -1,0 +1,19 @@
+@mixin tablet {
+  @media (max-width: 600px) { @content; }
+}
+
+@mixin mobile {
+  @media (max-width: 450px) { @content; }
+}
+
+@mixin table-layout {
+  grid-template-columns: 24px 3fr 2fr 2fr 2fr 1fr; 
+
+  @include tablet {
+    grid-template-columns: 24px 3fr 2fr 2fr 1fr; 
+  }
+  
+  @include mobile {
+    grid-template-columns: 24px 3fr 2fr 1fr; 
+  }
+}

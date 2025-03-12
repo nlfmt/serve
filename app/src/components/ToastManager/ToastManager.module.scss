@@ -1,0 +1,32 @@
+.toasts {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    width: min(calc(100% - 16px), 500px);
+    gap: 8px;
+    padding: 16px;
+    overflow: hidden;
+}
+
+.toast {
+    width: 100%;
+    background-color: var(--bg2);
+    border-radius: 16px;
+    border: 1px solid var(--divider);
+    animation: slideIn 300ms ease;
+    
+    &[data-state=leave] {
+        animation: slideOut 300ms ease;
+    }
+}
+
+@keyframes slideIn {
+    0% { transform: translateX(calc(100% + 16px)) }
+    100% { transform: translateX(0) }
+}
+@keyframes slideOut {
+    0% { transform: translateX(0) }
+    100% { transform: translateX(calc(100% + 16px)) }
+}

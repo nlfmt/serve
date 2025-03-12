@@ -1,14 +1,18 @@
 .button {
-    background-color: var(--primary);
-    color: black;
+    letter-spacing: 1px;
     border-radius: 8px;
-    padding-inline: 8px;
     border: none;
     cursor: pointer;
-    font-size: 12px;
     height: 100%;
     
+    &[data-variant=primary] {
+        color: black;
+        background-color: var(--primary);
+        font-weight: bold;
+    }
+    
     &[data-variant=secondary] {
+        padding-inline: 24px;
         background-color: var(--bg-highlight);
         color: var(--text);
     }
@@ -19,6 +23,14 @@
     
     &[data-size=small] {
         font-size: 10px;
-        padding-inline: 4px;
+        padding-inline: 8px;
+    }
+    &[data-size=medium] {
+        font-size: 12px;
+        padding-inline: 16px;
+    }
+    &[data-size=large] {
+        font-size: 14px;
+        padding-inline: 24px;
     }
 }

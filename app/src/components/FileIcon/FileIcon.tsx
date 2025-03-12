@@ -6,17 +6,18 @@ import { ArticleOutlined } from "@mui/icons-material"
 export namespace FileIcon {
   export interface Props {
     file: string
+    color?: boolean
   }
 }
 
-function FileIcon({ file }: FileIcon.Props) {
+function FileIcon({ file, color = true }: FileIcon.Props) {
   const [iconClass, setIconsClass] = useState<string | null>(null)
 
   useEffect(() => {
-    fileIcons.getClass(file).then((cls: string) => {
+    fileIcons.getClass(file, { color }).then((cls: string) => {
       setIconsClass(cls)
     })
-  }, [file])
+  }, [file, color])
 
   return iconClass ? <i className={iconClass} /> : <ArticleOutlined />
 }

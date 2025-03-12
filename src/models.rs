@@ -1,10 +1,18 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use actix_multipart::form::{bytes::Bytes, tempfile::TempFile, text::Text, MultipartForm};
 use serde::{Deserialize, Serialize};
+
+pub struct ServeOptions<'a> {
+    pub path: &'a Path,
+    pub port: u16,
+    pub allow_upload: bool,
+    pub allow_symlinks: bool,
+}
 
 pub struct AppState {
     pub file_dir: PathBuf,
+    pub allow_upload: bool,
+    pub allow_symlinks: bool,
 }
 
 #[derive(Serialize)]

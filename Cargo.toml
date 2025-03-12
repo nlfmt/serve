@@ -23,5 +23,4 @@ futures-util = "0.3.31"
 mime_guess = "2.0.5"
 rust-embed = "8.6.0"
 serde = { version = "1.0.218", features = ["derive"] }
-tokio = "1.44.0"
-vite-actix = "0.1.2"
+tokio = { version = "1.44.0", features = ["full"] }

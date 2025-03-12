@@ -1,4 +1,4 @@
 cd app
-pnpm build
+pnpm vite build
 cd ..
 cargo run --release -- $args

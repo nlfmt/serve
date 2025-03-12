@@ -1,0 +1,12 @@
+.dialog {
+    border: 1px solid var(--divider);
+    background-color: var(--bg2);
+    border-radius: 16px;
+    margin: auto;
+    overflow: hidden;
+    width: min(500px, calc(100% - 32px));
+    
+    &::backdrop {
+        background-color: rgba(0,0,0,0.6);
+    }
+}

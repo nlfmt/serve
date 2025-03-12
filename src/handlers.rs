@@ -22,9 +22,9 @@ use crate::{
 
 #[get("/api/files")]
 pub async fn load_files(data: web::Data<AppState>, params: web::Query<FilesQuery>) -> HttpResponse {
-    match parse_relative_path(&data.file_dir, &params.path) {
+    match parse_relative_path(&data.file_dir, &params.path, data.allow_symlinks) {
         None => HttpResponse::BadRequest().body("Invalid path"),
-        Some(path) => match read_entries(&path) {
+        Some(path) => match read_entries(&path, data.allow_symlinks) {
             Ok(content) => HttpResponse::Ok().json(content),
             Err(e) => match e.kind() {
                 ErrorKind::NotFound => HttpResponse::NotFound().body("Directory not found"),
@@ -39,10 +39,10 @@ pub async fn download_file(
     data: web::Data<AppState>,
     params: web::Query<DownloadQuery>,
 ) -> std::io::Result<NamedFile> {
-    match parse_relative_path(&data.file_dir, &params.path) {
+    match parse_relative_path(&data.file_dir, &params.path, data.allow_symlinks) {
         Some(path) => {
             println!(
-                "downloaded \x1b[33m{}\x1b[0m from \x1b[33m{}\x1b[0m",
+                "download \x1b[33m{}\x1b[0m from \x1b[33m{}\x1b[0m",
                 path.file_name().unwrap().to_str().unwrap(),
                 pretty_path(path.parent().unwrap())
             );
@@ -57,11 +57,12 @@ fn validate_upload_path(
     path: &str,
     file_name: &str,
     overwrite: bool,
+    allow_symlinks: bool,
 ) -> Result<PathBuf, (u16, String)> {
     let file_path = Path::new(path)
         .join(file_name)
         .to_str()
-        .and_then(|file_path| parse_relative_path(root, file_path));
+        .and_then(|file_path| parse_relative_path(root, file_path, allow_symlinks));
 
     match file_path {
         Some(path) => match path.exists() && !overwrite {
@@ -86,6 +87,7 @@ pub async fn pre_upload_file(
         &params.path,
         &params.file_name,
         params.overwrite,
+        data.allow_symlinks
     ) {
         Ok(_) => HttpResponse::Ok().finish(),
         Err((status, _)) => HttpResponse::build(StatusCode::from_u16(status).unwrap()).finish(),
@@ -108,6 +110,7 @@ pub async fn upload_file(
         &params.path,
         &params.file_name,
         params.overwrite,
+        data.allow_symlinks
     ) {
         Ok(path) => {
             let max_file_size: usize = 10_000_000_000;
@@ -138,7 +141,7 @@ pub async fn upload_file(
                 }
             }
             println!(
-                "uploaded \x1b[33m{}\x1b[0m to \x1b[33m{}\x1b[0m",
+                "upload \x1b[32m{}\x1b[0m to \x1b[32m{}\x1b[0m",
                 params.file_name, params.path
             );
             HttpResponse::Created().finish()

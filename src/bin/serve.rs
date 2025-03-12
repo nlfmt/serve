@@ -19,13 +19,17 @@ struct ServeArgs {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = ServeArgs::parse();
-
+    
     let path = match &args.path {
         Some(path) => Path::new(&path).to_owned(),
         None => std::env::current_dir()
             .expect("Can't read current directory")
             .to_owned(),
     };
+    
+    if args.allow_symlinks {
+        println!("\x1b[91mSecurity Warning:\x1b[0m You've enabled symlinks, this can allow users to access arbitrary files on your system. Use with caution.")
+    }
 
     run(ServeOptions {
         path: &path,

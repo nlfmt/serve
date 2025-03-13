@@ -17,7 +17,7 @@ use tokio::fs;
 
 use crate::{
     assets::Assets,
-    models::{AppState, DownloadQuery, FilesQuery, UploadQuery},
+    models::{AppState, DownloadQuery, FileResponse, FilesQuery, UploadQuery},
     utils::{parse_relative_path, pretty_path, read_entries},
 };
 

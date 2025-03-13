@@ -64,8 +64,8 @@ pub struct UploadQuery {
 }
 
 pub struct FileResponse {
-    inner: NamedFile,
-    file_name: String,
+    pub inner: NamedFile,
+    pub file_name: String,
 }
 impl<'r> rocket::response::Responder<'r, 'r> for FileResponse {
     fn respond_to(self, _: &'r rocket::Request<'_>) -> response::Result<'r> {

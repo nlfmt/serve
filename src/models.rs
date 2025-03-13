@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use rocket::{fs::NamedFile, http::Header, response, serde::Serialize, Response};
 
 pub struct ServeOptions<'a> {
     pub path: &'a Path,
@@ -46,19 +46,35 @@ impl Default for DirectoryContent {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(FromForm)]
 pub struct FilesQuery {
     pub path: String,
 }
 
-#[derive(Deserialize)]
+#[derive(FromForm, Debug)]
 pub struct DownloadQuery {
     pub path: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(FromForm)]
 pub struct UploadQuery {
     pub path: String,
     pub file_name: String,
     pub overwrite: bool,
+}
+
+pub struct FileResponse {
+    inner: NamedFile,
+    file_name: String,
+}
+impl<'r> rocket::response::Responder<'r, 'r> for FileResponse {
+    fn respond_to(self, _: &'r rocket::Request<'_>) -> response::Result<'r> {
+        Response::build()
+            .header(Header::new(
+                "Content-Disposition",
+                format!("attachment; filename=\"{}\"", self.file_name),
+            ))
+            .streamed_body(self.inner.take_file())
+            .ok()
+    }
 }

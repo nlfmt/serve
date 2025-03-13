@@ -16,7 +16,7 @@ struct ServeArgs {
     pub path: Option<String>,
 }
 
-#[tokio::main]
+#[rocket::main]
 async fn main() -> anyhow::Result<()> {
     let args = ServeArgs::parse();
     

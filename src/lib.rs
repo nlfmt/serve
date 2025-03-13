@@ -3,11 +3,15 @@ mod handlers;
 mod models;
 mod utils;
 
+#[macro_use]
+extern crate rocket;
+
 pub use models::ServeOptions;
+use rocket::{config::Ident, data::{Limits, ToByteUnit}, Config};
+use rocket_cors::AllowedOrigins;
 
-use std::{env, path::PathBuf, process::Command};
+use std::{env, net::IpAddr, path::PathBuf, process::Command, str::FromStr};
 
-use actix_web::{web, App, HttpServer};
 use handlers::{download_file, get_upload_enabled, load_files, pre_upload_file, serve_embedded_file, upload_file};
 use models::AppState;
 use utils::pretty_path;
@@ -20,26 +24,39 @@ pub async fn run(opts: ServeOptions<'_>) -> anyhow::Result<()> {
         pretty_path(&path),
         opts.port
     );
+    
+    let cors = rocket_cors::CorsOptions {
+        allowed_origins: AllowedOrigins::all(),
+        ..Default::default()
+    }
+    .to_cors()?;
+    
+    let cfg = Config {
+        address: IpAddr::from_str("0.0.0.0").unwrap(),
+        port: opts.port,
+        ident: Ident::try_new("serve").unwrap(),
+        limits: Limits::default()
+            .limit("data-form", 10.gigabytes())
+            .limit("file", 10.gigabytes()),
+        ..Default::default()
+    };
 
-    let state = web::Data::new(AppState {
-        file_dir: path.to_path_buf(),
-        allow_symlinks: opts.allow_symlinks,
-        allow_upload: opts.allow_upload,
-    });
-
-    let server = HttpServer::new(move || {
-        App::new()
-            .app_data(state.clone())
-            .service(load_files)
-            .service(download_file)
-            .service(pre_upload_file)
-            .service(upload_file)
-            .service(get_upload_enabled)
-            .default_service(web::get().to(serve_embedded_file))
-    })
-    .keep_alive(None)
-    .bind(("0.0.0.0", opts.port))?
-    .run();
+    let server = rocket::custom(cfg)
+        .manage(AppState {
+            file_dir: path.to_path_buf(),
+            allow_symlinks: opts.allow_symlinks,
+            allow_upload: opts.allow_upload,
+        })
+        .mount("/", routes![
+            load_files,
+            download_file,
+            pre_upload_file,
+            upload_file,
+            get_upload_enabled,
+            serve_embedded_file
+        ])
+        .attach(cors)
+        .launch();
 
     // run vite dev server in debug mode
     if cfg!(debug_assertions) {
@@ -54,5 +71,6 @@ pub async fn run(opts: ServeOptions<'_>) -> anyhow::Result<()> {
             .unwrap();
     }
 
-    Ok(server.await?)
+    server.await?;
+    Ok(())
 }

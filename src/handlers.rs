@@ -1,18 +1,19 @@
 use std::{
     io::ErrorKind,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
-use actix_files::NamedFile;
-use actix_multipart::Multipart;
-use actix_web::{
-    get, head,
-    http::{header::CONTENT_LENGTH, StatusCode},
-    post, web, HttpRequest, HttpResponse, Responder,
-};
-use futures_util::TryStreamExt;
 use mime_guess::from_path;
-use tokio::{fs, io::AsyncWriteExt};
+use rocket::{
+    data::ToByteUnit,
+    fs::NamedFile,
+    http::{ContentType, Header, Status},
+    response::{self, Responder},
+    serde::json::Json,
+    Data, Response, State,
+};
+use tokio::fs;
 
 use crate::{
     assets::Assets,
@@ -20,35 +21,41 @@ use crate::{
     utils::{parse_relative_path, pretty_path, read_entries},
 };
 
-#[get("/api/files")]
-pub async fn load_files(data: web::Data<AppState>, params: web::Query<FilesQuery>) -> HttpResponse {
-    match parse_relative_path(&data.file_dir, &params.path, data.allow_symlinks) {
-        None => HttpResponse::BadRequest().body("Invalid path"),
-        Some(path) => match read_entries(&path, data.allow_symlinks) {
-            Ok(content) => HttpResponse::Ok().json(content),
+#[get("/api/files?<query..>")]
+pub async fn load_files(state: &State<AppState>, query: FilesQuery) -> impl Responder {
+    match parse_relative_path(&state.file_dir, &query.path, state.allow_symlinks) {
+        None => Err((Status::BadRequest, "Invalid path")),
+        Some(path) => match read_entries(&path, state.allow_symlinks) {
+            Ok(content) => Ok(Json(content)),
             Err(e) => match e.kind() {
-                ErrorKind::NotFound => HttpResponse::NotFound().body("Directory not found"),
-                _ => HttpResponse::InternalServerError().body("Could not read directory"),
+                ErrorKind::NotFound => Err((Status::NotFound, "Directory not found")),
+                _ => Err((Status::InternalServerError, "Could not read directory")),
             },
         },
     }
 }
 
-#[get("/api/download")]
+#[get("/api/download?<query..>")]
 pub async fn download_file(
-    data: web::Data<AppState>,
-    params: web::Query<DownloadQuery>,
-) -> std::io::Result<NamedFile> {
-    match parse_relative_path(&data.file_dir, &params.path, data.allow_symlinks) {
+    state: &State<AppState>,
+    query: DownloadQuery,
+) -> Result<FileResponse, (Status, &str)> {
+    println!("{query:?}");
+    match parse_relative_path(&state.file_dir, &query.path, state.allow_symlinks) {
         Some(path) => {
+            let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
             println!(
                 "download \x1b[33m{}\x1b[0m from \x1b[33m{}\x1b[0m",
-                path.file_name().unwrap().to_str().unwrap(),
+                &file_name,
                 pretty_path(path.parent().unwrap())
             );
-            Ok(NamedFile::open(path).unwrap())
+            let file = NamedFile::open(&path).await.unwrap();
+            Ok(FileResponse {
+                inner: file,
+                file_name,
+            })
         }
-        None => Err(std::io::Error::new(ErrorKind::InvalidInput, "Invalid path")),
+        None => Err((Status::BadRequest, "Invalid path")),
     }
 }
 
@@ -58,7 +65,7 @@ fn validate_upload_path(
     file_name: &str,
     overwrite: bool,
     allow_symlinks: bool,
-) -> Result<PathBuf, (u16, String)> {
+) -> Result<PathBuf, (u16, &'static str)> {
     let file_path = Path::new(path)
         .join(file_name)
         .to_str()
@@ -66,108 +73,100 @@ fn validate_upload_path(
 
     match file_path {
         Some(path) => match path.exists() && !overwrite {
-            true => Err((409, "File already exists".to_string())),
+            true => Err((409, "File already exists")),
             false => Ok(path),
         },
-        None => Err((400, "Invalid Path".to_string())),
+        None => Err((400, "Invalid Path")),
     }
 }
 
-#[head("/api/upload")]
-pub async fn pre_upload_file(
-    data: web::Data<AppState>,
-    params: web::Query<UploadQuery>,
-) -> impl Responder {
-    if !data.allow_upload {
-        return HttpResponse::Forbidden().finish();
+#[head("/api/upload?<query..>")]
+pub async fn pre_upload_file(state: &State<AppState>, query: UploadQuery) -> Status {
+    if !state.allow_upload {
+        return Status::Forbidden;
     }
 
     match validate_upload_path(
-        &data.file_dir,
-        &params.path,
-        &params.file_name,
-        params.overwrite,
-        data.allow_symlinks
+        &state.file_dir,
+        &query.path,
+        &query.file_name,
+        query.overwrite,
+        state.allow_symlinks,
     ) {
-        Ok(_) => HttpResponse::Ok().finish(),
-        Err((status, _)) => HttpResponse::build(StatusCode::from_u16(status).unwrap()).finish(),
+        Ok(_) => Status::Ok,
+        Err((status, _)) => Status::from_code(status).unwrap(),
     }
 }
 
-#[post("/api/upload")]
-pub async fn upload_file(
-    data: web::Data<AppState>,
-    mut payload: Multipart,
-    req: HttpRequest,
-    params: web::Query<UploadQuery>,
-) -> impl Responder {
-    if !data.allow_upload {
-        return HttpResponse::Forbidden().body("File Uploads are disabled");
+#[post("/api/upload?<query..>", data = "<data>")]
+pub async fn upload_file<'a>(
+    state: &State<AppState>,
+    query: UploadQuery,
+    data: Data<'_>,
+) -> Result<(), (Status, String)> {
+    if !state.allow_upload {
+        return Err((Status::Forbidden, "File Uploads are disabled".to_string()));
     }
 
     match validate_upload_path(
-        &data.file_dir,
-        &params.path,
-        &params.file_name,
-        params.overwrite,
-        data.allow_symlinks
+        &state.file_dir,
+        &query.path,
+        &query.file_name,
+        query.overwrite,
+        state.allow_symlinks,
     ) {
         Ok(path) => {
-            let max_file_size: usize = 10_000_000_000;
-            let content_length: usize = match req.headers().get(CONTENT_LENGTH) {
-                Some(len) => len.to_str().unwrap_or("0").parse().unwrap_or(0),
-                None => 0,
+            if let Some(parent_dir) = path.parent() {
+                let _ = fs::create_dir_all(parent_dir).await;
             };
 
-            if content_length == 0 || content_length > max_file_size {
-                return HttpResponse::BadRequest().body("File too big, max size is 10GB");
-            }
+            let file = tokio::fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(path)
+                .await
+                .map_err(|e| {
+                    (
+                        Status::InternalServerError,
+                        format!("Failed to open file: {}", e.to_string()).to_string(),
+                    )
+                })?;
 
-            while let Ok(Some(mut field)) = payload.try_next().await {
-                if !field.name().is_some_and(|f| f == "file") {
-                    continue;
-                }
-                if let Some(parent_dir) = path.parent() {
-                    let _ = fs::create_dir_all(parent_dir).await;
-                };
-                let mut file = match fs::File::create(&path).await {
-                    Ok(f) => f,
-                    Err(_) => {
-                        return HttpResponse::InternalServerError().body("Could not create file")
-                    }
-                };
-                while let Ok(Some(chunk)) = field.try_next().await {
-                    let _ = file.write_all(&chunk).await.unwrap();
-                }
-            }
-            println!(
-                "upload \x1b[32m{}\x1b[0m to \x1b[32m{}\x1b[0m",
-                params.file_name, params.path
-            );
-            HttpResponse::Created().finish()
+            data.open(10.gigabytes())
+                .stream_to(file)
+                .await
+                .map_err(|e| {
+                    (
+                        Status::InternalServerError,
+                        format!("Failed to write to file: {}", e.to_string()).to_string(),
+                    )
+                })?;
+            Ok(())
         }
-        Err((status, message)) => {
-            HttpResponse::build(StatusCode::from_u16(status).unwrap()).body(message)
-        }
+        Err((status, message)) => Err((Status::from_code(status).unwrap(), message.to_string())),
     }
 }
 
-pub async fn serve_embedded_file(req: HttpRequest) -> impl Responder {
-    let path = req.path().trim_start_matches('/');
-
+#[get("/<path..>")]
+pub async fn serve_embedded_file(
+    path: PathBuf,
+) -> Result<(ContentType, Vec<u8>), (Status, &'static str)> {
+    let path = path.to_str().unwrap();
     let path = if path.is_empty() { "index.html" } else { path };
 
     match Assets::get(path) {
         Some(content) => {
             let mime_type = from_path(path).first_or_octet_stream();
-            HttpResponse::Ok()
-                .content_type(mime_type.to_string())
-                .body(content.data.to_vec())
+            Ok((
+                ContentType::from_str(&mime_type.to_string()).unwrap(),
+                content.data.to_vec(),
+            ))
         }
-        None => HttpResponse::NotFound().body("404 - Not Found"),
+        None => Err((Status::NotFound, "Not Found")),
     }
 }
+
 #[get("/api/upload_enabled")]
-pub async fn get_upload_enabled(data: web::Data<AppState>) -> String {
-    return data.allow_upload.to_string();
+pub async fn get_upload_enabled(state: &State<AppState>) -> String {
+    state.allow_upload.to_string()
 }

@@ -32,14 +32,12 @@ async function uploadFile(
     file_name: file.name,
     overwrite: String(!!overwrite),
   })
-  const body = new FormData()
-  body.append("file", file)
   const url = API_URL + `/upload?${query.toString()}`
 
   try {
     await axios.head(url)
 
-    await axios.post(url, body, {
+    await axios.post(url, file, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

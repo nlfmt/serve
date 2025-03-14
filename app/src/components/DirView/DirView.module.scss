@@ -25,7 +25,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      backdrop-filter: blur(2px);
+      background-color: rgba(0,0,0,0.2);
       & > svg {
         color: var(--primary);
         animation: rotate 1s linear infinite;
@@ -82,17 +82,17 @@
     transform: rotate(90deg);
   }
 
+  @media (max-width: 480px) {
+    .navigation, .loading {
+      display: none;
+    }
+  
+    .searchBar {
+      width: 100%;
+    }
+  }
 }
 
-@media (max-width: 480px) {
-  .navigation {
-    display: none;
-  }
-
-  .searchBar {
-    width: 100%;
-  }
-}
 
 .labels {
   padding: 12px 8px;

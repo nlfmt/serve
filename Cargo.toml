@@ -16,7 +16,9 @@ name = "serve"
 [dependencies]
 anyhow = "1.0.97"
 clap = { version = "4.5.31", features = ["derive"] }
+local-ip-address = "0.6.3"
 mime_guess = "2.0.5"
+qrcode-generator = "5.0.0"
 rocket = { version = "0.5.1", features = ["json"] }
 rocket-multipart-form-data = "0.10.7"
 rocket_cors = "0.6.0"

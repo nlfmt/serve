@@ -1,6 +1,8 @@
 use std::{
-    fmt::Display, fs, io, os::windows::fs::MetadataExt, path::{Component, Path, PathBuf}, time::UNIX_EPOCH
+    fmt::Display, fs, io, net::IpAddr, os::windows::fs::MetadataExt, path::{Component, Path, PathBuf}, time::UNIX_EPOCH
 };
+
+use local_ip_address::local_ip;
 
 use crate::models::{DirectoryContent, FileInfo, FolderInfo};
 
@@ -95,6 +97,17 @@ fn path_contains_symlink(path: &Path) -> io::Result<bool> {
     }
 
     Ok(false)
+}
+
+pub fn connection_string(interface: IpAddr, port: u16) -> String {
+    let i = interface.to_string();
+    let addr = match i.as_str() {
+        "0.0.0.0" => local_ip()
+            .map(|a| a.to_string())
+            .unwrap_or("127.0.0.1".to_string()),
+        _ => i,
+    };
+    format!("http://{}:{}", addr, port)
 }
 
 pub fn parse_relative_path(root: &Path, path: &str, allow_symlinks: bool) -> Option<PathBuf> {

@@ -1,16 +1,12 @@
-use std::path::{Path, PathBuf};
+use std::{net::IpAddr, path::PathBuf};
 
 use rocket::{fs::NamedFile, http::Header, response, serde::Serialize, Response};
 
-pub struct ServeOptions<'a> {
-    pub path: &'a Path,
-    pub port: u16,
-    pub allow_upload: bool,
-    pub allow_symlinks: bool,
-}
-
 pub struct AppState {
-    pub file_dir: PathBuf,
+    pub root_dir: PathBuf,
+    pub port: u16,
+    pub interface: IpAddr,
+
     pub allow_upload: bool,
     pub allow_symlinks: bool,
 }

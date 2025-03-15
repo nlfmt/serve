@@ -23,3 +23,4 @@ Quickly serve files to anyone on your local network, using a easy web ui
   - [ ] allow creating directories
   - [ ] file/folder info popup
   - [ ] delete/rename ? (secured behind flag)
+- [ ] add qr code button on mobile

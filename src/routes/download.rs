@@ -1,14 +1,14 @@
 use rocket::{fs::NamedFile, http::Status, State};
 
-use crate::{models::{AppState, DownloadQuery, FileResponse}, utils::{parse_relative_path, pretty_path}};
+use crate::{auth::AuthGuard, models::{AppState, FileResponse}, util::path::{parse_relative_path, pretty_path}};
 
-#[get("/download?<query..>")]
+#[get("/download?<path>")]
 pub async fn download_file(
+    _auth: AuthGuard,
     state: &State<AppState>,
-    query: DownloadQuery,
+    path: String,
 ) -> Result<FileResponse, (Status, &str)> {
-    println!("{query:?}");
-    match parse_relative_path(&state.root_dir, &query.path, state.allow_symlinks) {
+    match parse_relative_path(&state.root_dir, &path, state.allow_symlinks) {
         Some(path) => {
             let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
             println!(

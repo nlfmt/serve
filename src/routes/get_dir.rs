@@ -2,10 +2,10 @@ use std::io::ErrorKind;
 
 use rocket::{http::Status, serde::json::Json, State, response::Responder};
 
-use crate::{models::{AppState, FilesQuery}, utils::{parse_relative_path, read_entries}};
+use crate::{auth::AuthGuard, models::{AppState, FilesQuery}, util::{dir::read_entries, path::parse_relative_path}};
 
 #[get("/files?<query..>")]
-pub async fn get_dir_content(state: &State<AppState>, query: FilesQuery) -> impl Responder {
+pub async fn get_dir_content(_auth: AuthGuard, state: &State<AppState>, query: FilesQuery) -> impl Responder {
     match parse_relative_path(&state.root_dir, &query.path, state.allow_symlinks) {
         None => Err((Status::BadRequest, "Invalid path")),
         Some(path) => match read_entries(&path, state.allow_symlinks) {

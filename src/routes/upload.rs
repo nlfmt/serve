@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use rocket::{data::ToByteUnit, http::Status, State};
 use tokio::fs;
 
-use crate::{models::{AppState, UploadQuery}, utils::parse_relative_path};
+use crate::{auth::AuthGuard, models::{AppState, UploadQuery}, util::path::parse_relative_path};
 
 fn validate_upload_path(
     root: &Path,
@@ -27,7 +27,7 @@ fn validate_upload_path(
 }
 
 #[head("/upload?<query..>")]
-pub async fn pre_upload_file(state: &State<AppState>, query: UploadQuery) -> Status {
+pub async fn pre_upload_file(_auth: AuthGuard, state: &State<AppState>, query: UploadQuery) -> Status {
     if !state.allow_upload {
         return Status::Forbidden;
     }
@@ -46,6 +46,7 @@ pub async fn pre_upload_file(state: &State<AppState>, query: UploadQuery) -> Sta
 
 #[post("/upload?<query..>", data = "<data>")]
 pub async fn upload_file(
+    _auth: AuthGuard,
     state: &State<AppState>,
     query: UploadQuery,
     data: rocket::Data<'_>,

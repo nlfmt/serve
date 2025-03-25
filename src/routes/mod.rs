@@ -1,3 +1,4 @@
+pub mod download_folder;
 pub mod download;
 pub mod get_dir;
 pub mod settings;

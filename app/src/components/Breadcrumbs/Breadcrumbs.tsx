@@ -2,9 +2,17 @@ import { useMemo } from "react"
 import c from "./Breadcrumbs.module.scss"
 import { HomeRounded } from "@mui/icons-material"
 import { useNavigation } from "@/hooks/useNavigation"
+import Button from "../Button/Button"
 
 function Breadcrumbs() {
   const { path } = useNavigation()
+
+  const downloadUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      path
+    })
+    return `/api/download_folder?${params.toString()}`
+  }, [path])
 
   const segments = useMemo(() => {
     const segments = path.match(/\/|([^/]+)/g)
@@ -41,6 +49,10 @@ function Breadcrumbs() {
           </span>
         ))}
       </div>
+      
+      <a download target="_blank" href={downloadUrl} className={c.downloadButton}>
+      <Button variant="primary">Download Folder</Button>
+      </a>
     </div>
   )
 }

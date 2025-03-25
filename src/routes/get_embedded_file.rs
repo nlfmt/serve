@@ -3,10 +3,11 @@ use std::{path::PathBuf, str::FromStr};
 use mime_guess::from_path;
 use rocket::http::{ContentType, Status};
 
-use crate::assets::Assets;
+use crate::{assets::Assets, auth::AuthGuard};
 
 #[get("/<path..>")]
 pub async fn get_embedded_file(
+    _auth: AuthGuard,
     path: PathBuf,
 ) -> Result<(ContentType, Vec<u8>), (Status, &'static str)> {
     let path = path.to_str().unwrap();

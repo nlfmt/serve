@@ -14,7 +14,7 @@ function useNavigationLogic(initial: string) {
     window.navigation.addEventListener(
       "navigate",
       e => {
-        if (e.destination.url.includes("api/download?path=")) return
+        if (e.destination.url.includes("?path=")) return
         setPath(new URL(e.destination.url).pathname ?? "/")
         isNavigating.current = false
       },

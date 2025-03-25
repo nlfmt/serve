@@ -2,6 +2,8 @@ use std::{net::IpAddr, path::PathBuf};
 
 use rocket::{fs::NamedFile, http::Header, response, serde::Serialize, Response};
 
+use crate::auth::Auth;
+
 pub struct AppState {
     pub root_dir: PathBuf,
     pub port: u16,
@@ -9,6 +11,10 @@ pub struct AppState {
 
     pub allow_upload: bool,
     pub allow_symlinks: bool,
+}
+
+pub struct AuthState {
+    pub auths: Vec<Auth>
 }
 
 #[derive(Serialize)]
@@ -44,11 +50,6 @@ impl Default for DirectoryContent {
 
 #[derive(FromForm)]
 pub struct FilesQuery {
-    pub path: String,
-}
-
-#[derive(FromForm, Debug)]
-pub struct DownloadQuery {
     pub path: String,
 }
 

@@ -1,15 +1,46 @@
 # serve
 
-Quickly serve files to anyone on your local network, using a easy web ui
+Quickly serve and receive files to/from anyone on your local network, using an easy web ui
 
-# Todo
+!(serve ui example)[media/serve-ui-example.png]
+
+## Features
+- Easy and quick Uploads
+- Zip Folder downloads
+- Rename/Delete Files and Folders
+- QR Code to connect
+- Password Protection
+- Sane Defaults
+- Fast, thanks to rust backend
+- Goodlooking UI
+
+## Installation
+
+Using cargo:
+```sh
+cargo install nlfmt-serve
+serve --help
+```
+
+From source:
+```sh
+git clone https://github.com/nlfmt/serve
+cd serve
+# build frontend
+cd app && pnpm i && pnpm build
+cd .. && cargo install --path .
+```
+
+pre-built binaries coming soon...
+
+## Todo
 
 - [X] add download folder as zip or tar.gz
-- [ ] folder uploads (locked behind flag)
+- [X] Uploads
   - [X] upload button in breadcrumbs, popup with drop zon
   - [X] drop zone anywhere in the window -> upload to current folder
   - [X] drop zone on folders => upload to that folder
-  - [ ] if folder is uploaded, zip it and send it then unzip it
+- [ ] folder uploads (locked behind flag)
 - [X] dont download symlinks, unless specified with flag
 - [X] allow setting a password & username
   - `--auth, -a`, or `--auth-file` (maybe hashed?)

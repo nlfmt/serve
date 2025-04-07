@@ -9,6 +9,12 @@ repository = "https://github.com/nlfmt/serve"
 edition = "2021"
 keywords = ["serve", "file-server"]
 categories = ["command-line-utilities"]
+include = [
+    "src/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "app/dist/**"
+]
 
 [[bin]]
 name = "serve"

@@ -1,5 +1,6 @@
-use rust_embed::Embed;
+use rust_embed::RustEmbed;
 
-#[derive(Embed)]
-#[folder = "./app/dist"]
+
+#[derive(RustEmbed)]
+#[folder = "app/dist"]
 pub struct Assets;

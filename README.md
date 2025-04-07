@@ -2,7 +2,7 @@
 
 Quickly serve and receive files to/from anyone on your local network, using an easy web ui
 
-!(serve ui example)[media/serve-ui-example.png]
+![serve ui example](media/serve-ui-example.png)
 
 ## Features
 - Easy and quick Uploads

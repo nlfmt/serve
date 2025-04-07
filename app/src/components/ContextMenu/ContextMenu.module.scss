@@ -1,0 +1,57 @@
+.button {
+    padding: 0 8px !important;
+    background-color: transparent !important;
+    anchor-name: var(--anchor-id);
+
+    &:hover {
+        background-color: var(--bg3) !important;
+    }
+    
+}
+
+.moreIcon {
+    fill: var(--text-dark) !important;
+}
+
+.contextmenu {
+    inset: unset;
+    position-anchor: var(--anchor-id);
+    padding: 8px;
+    top: calc(anchor(bottom) + 8px);
+    right: anchor(right);
+    background-color: var(--bg2);
+    border: 1px solid var(--divider);
+    border-radius: 16px;
+    min-width: 250px;
+    
+
+    
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    color: var(--text);
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    gap: 8px;
+    font-size: 12px;
+    height: 40px;
+    
+    .icon {
+        opacity: 0.9;
+        margin-left: auto;
+        svg {
+            height: 22px;
+            width: 22px;
+        }
+        display: grid;
+        place-content: center;
+    }
+    
+    &:hover {
+        background-color: var(--bg-highlight);
+        color: var(--primary);
+    }
+}

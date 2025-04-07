@@ -56,17 +56,41 @@ async function uploadFile(
   }
 }
 
-async function isUploadEnabled(): Promise<Result<boolean, string>> {
-    return await axios.get(API_URL + "/upload_enabled").then(res => {
-        console.log(res.data)
-        return Result.Ok<boolean, string>(res.data === true)
+export interface Settings {
+  upload: boolean,
+  allow_rename: boolean,
+  allow_delete: boolean,
+}
+
+async function getSettings(): Promise<Result<Settings, string>> {
+    return await axios.get(API_URL + "/settings").then(res => {
+        return Result.Ok(res.data as Settings)
     }).catch((e: AxiosError) => {
         return Result.Err(String(e.response?.data) || e.message)
     })
 }
 
+async function rename(path: string, to: string): Promise<Result<null, string>> {
+  return await axios.put(API_URL + "/rename", { path, to }).then(() => {
+    return Result.Ok(null)
+  }).catch((e: AxiosError) => {
+    return Result.Err(String(e.response?.data) || e.message)
+  })
+}
+
+async function remove(path: string): Promise<Result<null, string>> {
+  const query = new URLSearchParams({ path })
+  return await axios.delete(API_URL + "/delete?" + query.toString()).then(() => {
+    return Result.Ok(null)
+  }).catch((e: AxiosError) => {
+    return Result.Err(String(e.response?.data) || e.message)
+  })
+}
+
 export default {
     fetchFiles,
     uploadFile,
-    isUploadEnabled,
+    getSettings,
+    rename,
+    remove,
 }

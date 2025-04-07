@@ -28,7 +28,7 @@ fn validate_upload_path(
 
 #[head("/upload?<query..>")]
 pub async fn pre_upload_file(_auth: AuthGuard, state: &State<AppState>, query: UploadQuery) -> Status {
-    if !state.allow_upload {
+    if !state.upload {
         return Status::Forbidden;
     }
 
@@ -37,7 +37,7 @@ pub async fn pre_upload_file(_auth: AuthGuard, state: &State<AppState>, query: U
         &query.path,
         &query.file_name,
         query.overwrite,
-        state.allow_symlinks,
+        state.symlinks,
     ) {
         Ok(_) => Status::Ok,
         Err((status, _)) => Status::from_code(status).unwrap(),
@@ -51,7 +51,7 @@ pub async fn upload_file(
     query: UploadQuery,
     data: rocket::Data<'_>,
 ) -> Result<(), (Status, String)> {
-    if !state.allow_upload {
+    if !state.upload {
         return Err((Status::Forbidden, "File Uploads are disabled".to_string()));
     }
 
@@ -60,7 +60,7 @@ pub async fn upload_file(
         &query.path,
         &query.file_name,
         query.overwrite,
-        state.allow_symlinks,
+        state.symlinks,
     ) {
         Ok(path) => {
             if let Some(parent_dir) = path.parent() {

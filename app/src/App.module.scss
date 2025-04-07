@@ -1,7 +1,9 @@
 .header {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
 }
+
 .title {
   width: 100%;
   text-align: left;

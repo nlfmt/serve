@@ -6,9 +6,9 @@ use crate::{auth::AuthGuard, models::{AppState, FilesQuery}, util::{dir::read_en
 
 #[get("/files?<query..>")]
 pub async fn get_dir_content(_auth: AuthGuard, state: &State<AppState>, query: FilesQuery) -> impl Responder {
-    match parse_relative_path(&state.root_dir, &query.path, state.allow_symlinks) {
+    match parse_relative_path(&state.root_dir, &query.path, state.symlinks) {
         None => Err((Status::BadRequest, "Invalid path")),
-        Some(path) => match read_entries(&path, state.allow_symlinks) {
+        Some(path) => match read_entries(&path, state.symlinks) {
             Ok(content) => Ok(Json(content)),
             Err(e) => match e.kind() {
                 ErrorKind::NotFound => Err((Status::NotFound, "Directory not found")),

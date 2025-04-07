@@ -9,8 +9,11 @@ pub struct AppState {
     pub port: u16,
     pub interface: IpAddr,
 
-    pub allow_upload: bool,
-    pub allow_symlinks: bool,
+    pub upload: bool,
+    pub symlinks: bool,
+
+    pub allow_rename: bool,
+    pub allow_delete: bool,
 }
 
 pub struct AuthState {
@@ -74,4 +77,11 @@ impl<'r> rocket::response::Responder<'r, 'r> for FileResponse {
             .streamed_body(self.inner.take_file())
             .ok()
     }
+}
+
+#[derive(Serialize)]
+pub struct Settings {
+    pub upload: bool,
+    pub allow_rename: bool,
+    pub allow_delete: bool,
 }

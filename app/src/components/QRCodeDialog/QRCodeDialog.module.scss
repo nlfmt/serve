@@ -1,0 +1,26 @@
+.button {
+  padding-inline: 8px !important;
+  background-color: transparent !important;
+
+  &:hover {
+    color: var(--primary);
+  }
+}
+.dialog {
+  width: min(70%, 500px);
+  height: min-content;
+  margin: auto;
+  background-color: transparent;
+  border: none;
+  
+  &::backdrop {
+    background-color: rgba(0,0,0,0.5);
+  }
+
+  & img {
+    border-radius: 8px;
+    width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}

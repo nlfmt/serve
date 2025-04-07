@@ -39,12 +39,8 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
         print!("\n{}", qr_string(matrix));
     }
 
-    if args.allow_symlinks {
+    if args.symlinks {
         println!("\x1b[91mSecurity Warning:\x1b[0m You've enabled symlinks, this can allow users to access arbitrary files on your system. Use with caution.")
-    }
-
-    if auths.len() > 0 {
-        println!("loaded {} logins", auths.len())
     }
 
     println!(
@@ -67,8 +63,10 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
             root_dir: root_dir.to_path_buf(),
             port: args.port,
             interface: args.interface,
-            allow_symlinks: args.allow_symlinks,
-            allow_upload: args.allow_upload,
+            symlinks: args.symlinks,
+            upload: args.upload,
+            allow_delete: args.allow_delete,
+            allow_rename: args.allow_rename,
         })
         .attach(AuthFairing)
         .attach(cors)
@@ -80,8 +78,10 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
                 routes::download_folder::download_folder,
                 routes::upload::pre_upload_file,
                 routes::upload::upload_file,
-                routes::settings::get_upload_enabled,
+                routes::settings::get_settings,
                 routes::get_qrcode::get_connection_qrcode,
+                routes::file_ops::rename,
+                routes::file_ops::delete,
             ],
         )
         .mount("/", routes![routes::get_embedded_file::get_embedded_file])

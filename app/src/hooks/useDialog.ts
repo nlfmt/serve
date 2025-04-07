@@ -35,7 +35,6 @@ export default function useDialog(opts?: { modal?: boolean }) {
             clientX > rect.right ||
             clientY < rect.top ||
             clientY > rect.bottom
-        console.log({ outside  })
         if (outside) close()
     }
 

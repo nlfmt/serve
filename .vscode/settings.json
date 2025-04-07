@@ -1,0 +1,6 @@
+{
+    // fix for scss modules intellisense not working when using @/ imports
+    "cssModules.pathAlias": {
+        "@/": "${workspaceFolder}/app/src/"
+    }
+}

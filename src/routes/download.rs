@@ -8,7 +8,7 @@ pub async fn download_file(
     state: &State<AppState>,
     path: String,
 ) -> Result<FileResponse, (Status, &str)> {
-    match parse_relative_path(&state.root_dir, &path, state.allow_symlinks) {
+    match parse_relative_path(&state.root_dir, &path, state.symlinks) {
         Some(path) => {
             let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
             println!(

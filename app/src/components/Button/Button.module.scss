@@ -4,6 +4,8 @@
     border: none;
     cursor: pointer;
     height: 100%;
+    display: grid;
+    place-content: center;
     
     &[data-variant=primary] {
         color: black;
@@ -17,7 +19,7 @@
         color: var(--text);
     }
     
-    &:hover {
+    &:not(:disabled):hover {
         filter:brightness(1.1)
     }
     
@@ -32,5 +34,10 @@
     &[data-size=large] {
         font-size: 14px;
         padding-inline: 24px;
+    }
+    
+    &:disabled {
+        cursor: default;
+        opacity: 0.5;
     }
 }

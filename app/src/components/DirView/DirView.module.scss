@@ -78,8 +78,12 @@
     }
   }
 
-  .searchBar:focus-within svg {
-    transform: rotate(90deg);
+  .searchBar {
+    margin-left: auto;
+
+    &:focus-within svg {
+      transform: rotate(90deg);
+    }
   }
 
   @media (max-width: 480px) {

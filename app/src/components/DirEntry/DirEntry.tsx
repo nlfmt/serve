@@ -37,7 +37,10 @@ function DirEntry({ info, icon, onClick, children, download, onDrop }: DirEntry.
       className={classes(c.entry, [c.dropHover, dropHover])}
       href={download}
       download={!!download}
-      onClick={onClick}
+      onClick={e => {
+        if (e.defaultPrevented) return
+        onClick?.()
+      }}
       {...(onDrop ? dropTargetProps : [])}
     >
       <div className={c.icon}>{icon}</div>

@@ -1,18 +1,11 @@
 import { useMemo } from "react"
 import c from "./Breadcrumbs.module.scss"
-import { HomeRounded } from "@mui/icons-material"
+import { FolderZipOutlined, HomeRounded, QrCodeOutlined } from "@mui/icons-material"
 import { useNavigation } from "@/hooks/useNavigation"
-import Button from "../Button/Button"
+import ContextMenu from "../ContextMenu/ContextMenu"
 
 function Breadcrumbs() {
   const { path } = useNavigation()
-
-  const downloadUrl = useMemo(() => {
-    const params = new URLSearchParams({
-      path
-    })
-    return `/api/download_folder?${params.toString()}`
-  }, [path])
 
   const segments = useMemo(() => {
     const segments = path.match(/\/|([^/]+)/g)
@@ -50,9 +43,14 @@ function Breadcrumbs() {
         ))}
       </div>
       
-      <a download target="_blank" href={downloadUrl} className={c.downloadButton}>
+      {/* <a download target="_blank" href={downloadUrl} className={c.downloadButton}>
       <Button variant="primary">Download Folder</Button>
-      </a>
+      </a> */}
+      <ContextMenu className={c.contextMenu}>
+        <ContextMenu.Item label="Show QR Code" icon={<QrCodeOutlined />} />
+        <ContextMenu.Item label="Download ZIP" icon={<FolderZipOutlined />} />
+        <ContextMenu.Item label="hallo" />
+      </ContextMenu>
     </div>
   )
 }

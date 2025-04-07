@@ -26,10 +26,16 @@ pub struct ServeArgs {
     pub qr: bool,
 
     #[arg(short = 'u', long, default_value_t = false)]
-    pub allow_upload: bool,
+    pub upload: bool,
 
     #[arg(short = 's', long, default_value_t = false)]
-    pub allow_symlinks: bool,
+    pub symlinks: bool,
+    
+    #[arg(long, default_value_t = false)]
+    pub allow_rename: bool,
+    #[arg(long, default_value_t = false)]
+    pub allow_delete: bool,
+
 
     #[arg(
         short,

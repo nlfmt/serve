@@ -1,8 +1,13 @@
-use rocket::State;
+use rocket::{serde::json::Json, State};
 
-use crate::{auth::AuthGuard, models::AppState};
+use crate::{auth::AuthGuard, models::{AppState, Settings}};
 
-#[get("/upload_enabled")]
-pub async fn get_upload_enabled(_auth: AuthGuard, state: &State<AppState>) -> String {
-    state.allow_upload.to_string()
+
+#[get("/settings")]
+pub async fn get_settings(_auth: AuthGuard, state: &State<AppState>) -> Json<Settings> {
+    Json(Settings {
+        upload: state.upload,
+        allow_delete: state.allow_delete,
+        allow_rename: state.allow_rename,
+    })
 }

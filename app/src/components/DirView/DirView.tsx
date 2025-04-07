@@ -1,7 +1,18 @@
 import { classes } from "@/util/classes"
 import c from "./DirView.module.scss"
 import useDropTarget from "@/hooks/useDropTarget"
-import { ArrowBackRounded, ArrowForwardRounded, ArrowUpwardRounded, CachedRounded, FolderOutlined, ReplayRounded, SearchOutlined } from "@mui/icons-material"
+import {
+  ArrowBackRounded,
+  ArrowForwardRounded,
+  ArrowUpwardRounded,
+  CachedRounded,
+  DeleteOutlined,
+  FolderOutlined,
+  FolderZipOutlined,
+  ReplayRounded,
+  SearchOutlined,
+  TextFieldsOutlined,
+} from "@mui/icons-material"
 import { DragEvent, useCallback, useEffect, useMemo, useState } from "react"
 import { DirInfo } from "@/util/models"
 import DirEntry from "../DirEntry/DirEntry"
@@ -13,16 +24,22 @@ import common from "../../styles/common.module.scss"
 import TextField from "../TextField/TextField"
 import useToastService from "@/hooks/useToastService"
 import UploadToast from "../UploadToast/UploadToast"
-
+import ContextMenu from "../ContextMenu/ContextMenu"
+import ErrorToast from "../ErrorToast/ErrorToast"
+import { useSettings } from "@/hooks/useSettings"
+import useModalService from "@/hooks/useModalService"
+import RenameModal from "../RenameModal/RenameModal"
 
 function DirView() {
   const { path, navigate, up } = useNavigation()
   const toastService = useToastService()
+  const modalService = useModalService()
+  const settings = useSettings()
   const [search, setSearch] = useState("")
   const [dirData, setDirData] = useState<DirInfo | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  
+
   const fetchFiles = useCallback(() => {
     setLoading(true)
     api.fetchFiles(path).then(res => {
@@ -38,6 +55,7 @@ function DirView() {
 
   const data = useMemo(() => {
     if (!dirData) return null
+    // toastService.add(ErrorToast, { error: "hello" })
 
     const searchFn = ({ name }: { name: string }) => {
       return name.toLowerCase().includes(search.toLowerCase())
@@ -48,12 +66,25 @@ function DirView() {
       dirs: dirData.dirs.filter(searchFn),
     }
   }, [search, dirData])
-  
-  const { dropHover, dropTargetProps } = useDropTarget(async (e: DragEvent) => {
-    const file = e.dataTransfer.files[0]
-    if (!file) return
-    toastService.add(UploadToast, { file, path, onSuccess: fetchFiles })
-  }, [path])
+
+  const { dropHover, dropTargetProps } = useDropTarget(
+    async (e: DragEvent) => {
+      const file = e.dataTransfer.files[0]
+      if (!file) return
+      toastService.add(UploadToast, { file, path, onSuccess: fetchFiles })
+    },
+    [path],
+  )
+
+  async function remove(path: string) {
+    const res = await api.remove(path)
+    if (res.error) {
+      toastService.add(ErrorToast, { error: res.error })
+    } else {
+      toastService.add(ErrorToast, { error: `${path} was deleted` })
+      fetchFiles()
+    }
+  }
 
   return (
     <div
@@ -96,7 +127,12 @@ function DirView() {
           </div>
         </div>
         {loading && <span className={c.loading}>Loading...</span>}
-        <TextField className={c.searchBar} icon={<SearchOutlined />} value={search} onChange={e => setSearch(e.target.value)} />
+        <TextField
+          className={c.searchBar}
+          icon={<SearchOutlined />}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </header>
       <section className={c.labels}>
         <span></span>
@@ -123,7 +159,29 @@ function DirView() {
                     onSuccess: fetchFiles,
                   })
                 }}
-              />
+              >
+                <ContextMenu>
+                  {settings.allow_rename && <ContextMenu.Item
+                    label="Rename Folder"
+                    icon={<TextFieldsOutlined />}
+                    onClick={async () => {
+                      modalService.show(RenameModal, {
+                        path: joinPath(path, info.name),
+                        onSuccess: fetchFiles,
+                      })
+                    }}
+                  />}
+                  {settings.allow_delete && <ContextMenu.Item
+                    label="Delete Folder"
+                    icon={<DeleteOutlined />}
+                    onClick={() => remove(joinPath(path, info.name))}
+                  />}
+                  <ContextMenu.Item
+                    label="Download ZIP"
+                    icon={<FolderZipOutlined />}
+                  />
+                </ContextMenu>
+              </DirEntry>
             ))}
             {data.files.map(info => {
               const params = new URLSearchParams({
@@ -135,7 +193,28 @@ function DirView() {
                   info={info}
                   icon={<FileIcon file={info.name} />}
                   download={`/api/download?${params.toString()}`}
-                />
+                >
+                  {(settings.allow_delete || settings.allow_rename) && (
+                    <ContextMenu>
+                      {settings.allow_rename && (
+                        <ContextMenu.Item
+                          label="Rename"
+                          icon={<TextFieldsOutlined />}
+                          onClick={async () => {
+                            modalService.show(RenameModal, { path: joinPath(path, info.name), onSuccess: fetchFiles })
+                          }}
+                        />
+                      )}
+                      {settings.allow_delete && (
+                        <ContextMenu.Item
+                          label="Delete"
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(joinPath(path, info.name))}
+                        />
+                      )}
+                    </ContextMenu>
+                  )}
+                </DirEntry>
               )
             })}
             {data.dirs.length + data.files.length == 0 &&

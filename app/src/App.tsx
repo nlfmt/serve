@@ -4,36 +4,45 @@ import Breadcrumbs from "./components/Breadcrumbs/Breadcrumbs"
 import UploadDialog from "./components/UploadDialog/UploadDialog"
 import ToastManager from "./components/ToastManager/ToastManager"
 import { useEffect, useState } from "react"
-import api from "./services/api"
+import api, { Settings } from "./services/api"
 import { NavigationProvider } from "./contexts/providers/Navigation.provider"
+import QRCodeDialog from "./components/QRCodeDialog/QRCodeDialog"
+import { SettingsContext } from "./contexts/Settings.context"
+import ModalManager from "./components/ModalManager/ModalManager"
+
 
 function App() {
-  const [uploadEnabled, setUploadEnabled] = useState(false)
+  const [settings, setSettings] = useState<Settings>({
+    allow_delete: false,
+    allow_rename: false,
+    upload: false,
+  })
 
   useEffect(() => {
-    api.isUploadEnabled().then(res => {
-      if (res.value) setUploadEnabled(true)
+    api.getSettings().then(res => {
+      if (res.value) setSettings(res.value)
     })
   }, [])
 
   return (
-    <NavigationProvider>
-      <ToastManager>
-        <div className={c.container}>
-          <header className={c.header}>
-            <h2 className={c.title}>File Explorer</h2>
-            {uploadEnabled && <UploadDialog />}
-          </header>
-          <Breadcrumbs />
-          <DirView />
-        </div>
-      </ToastManager>
-    </NavigationProvider>
+    <SettingsContext.Provider value={settings}>
+      <NavigationProvider>
+        <ToastManager>
+          <ModalManager>
+            <div className={c.container}>
+              <header className={c.header}>
+                <h2 className={c.title}>File Explorer</h2>
+                <QRCodeDialog />
+                {settings?.upload && <UploadDialog />}
+              </header>
+              <Breadcrumbs />
+              <DirView />
+            </div>
+          </ModalManager>
+        </ToastManager>
+      </NavigationProvider>
+    </SettingsContext.Provider>
   )
 }
 
 export default App
-function setLoading(arg0: boolean) {
-  throw new Error("Function not implemented.")
-}
-

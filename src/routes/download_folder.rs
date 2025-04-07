@@ -11,7 +11,7 @@ pub async fn download_folder(
     state: &State<AppState>,
     path: String,
 ) -> Result<FileResponse, (Status, &str)> {
-    match parse_relative_path(&state.root_dir, &path, state.allow_symlinks) {
+    match parse_relative_path(&state.root_dir, &path, state.symlinks) {
         Some(path) => {
             let tmp_file_path = generate_temp_path();
             let tmp_path = Path::new(&tmp_file_path);

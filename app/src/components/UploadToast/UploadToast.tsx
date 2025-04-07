@@ -42,7 +42,7 @@ function UploadToast(props: UploadToast.Props) {
           setError(res.error)
         }
       })
-  }, [])
+  }, [props])
 
   useEffect(() => {
     upload(false)

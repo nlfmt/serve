@@ -22,18 +22,18 @@ pub struct ServeArgs {
     )]
     pub interface: IpAddr,
 
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long, default_value_t = false, help = "Show a connections QR code in the terminal")]
     pub qr: bool,
 
-    #[arg(short = 'u', long, default_value_t = false)]
+    #[arg(short = 'u', long, default_value_t = false, help = "Allow users to upload files to the served folder")]
     pub upload: bool,
 
-    #[arg(short = 's', long, default_value_t = false)]
+    #[arg(short = 's', long, default_value_t = false, help = "Resolve symlinks instead of ignoring them (dangerous!)")]
     pub symlinks: bool,
     
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, help = "Allow users to rename files/folders")]
     pub allow_rename: bool,
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, help = "Allow users to delete files/folders")]
     pub allow_delete: bool,
 
 
@@ -41,14 +41,14 @@ pub struct ServeArgs {
         short,
         long,
         value_name = "USER:PASS",
-        help = "specify a username and password",
+        help = "Specify a username and password",
         value_parser(Auth::from)
     )]
     pub auth: Vec<Auth>,
 
     #[arg(
         long,
-        help = "file with logins separated by newlines",
+        help = "File with logins separated by newlines",
         value_parser(parse_auth_file)
     )]
     pub auth_file: Vec<Vec<Auth>>,

@@ -9,6 +9,7 @@ import {
   DeleteOutlined,
   FolderOutlined,
   FolderZipOutlined,
+  InfoOutlined,
   ReplayRounded,
   SearchOutlined,
   TextFieldsOutlined,
@@ -29,6 +30,7 @@ import ErrorToast from "../ErrorToast/ErrorToast"
 import { useSettings } from "@/hooks/useSettings"
 import useModalService from "@/hooks/useModalService"
 import RenameModal from "../RenameModal/RenameModal"
+import InfoModal from "../InfoModal/InfoModal"
 
 function DirView() {
   const { path, navigate, up } = useNavigation()
@@ -179,6 +181,12 @@ function DirView() {
                   <ContextMenu.Item
                     label="Download ZIP"
                     icon={<FolderZipOutlined />}
+                    onClick={() => api.downloadFolder(joinPath(path, info.name))}
+                  />
+                  <ContextMenu.Item
+                    label="Properties"
+                    icon={<InfoOutlined />}
+                    onClick={() => modalService.show(InfoModal, { path, info, isDir: true })}
                   />
                 </ContextMenu>
               </DirEntry>
@@ -194,26 +202,29 @@ function DirView() {
                   icon={<FileIcon file={info.name} />}
                   download={`/api/download?${params.toString()}`}
                 >
-                  {(settings.allow_delete || settings.allow_rename) && (
-                    <ContextMenu>
-                      {settings.allow_rename && (
-                        <ContextMenu.Item
-                          label="Rename"
-                          icon={<TextFieldsOutlined />}
-                          onClick={async () => {
-                            modalService.show(RenameModal, { path: joinPath(path, info.name), onSuccess: fetchFiles })
-                          }}
-                        />
-                      )}
-                      {settings.allow_delete && (
-                        <ContextMenu.Item
-                          label="Delete"
-                          icon={<DeleteOutlined />}
-                          onClick={() => remove(joinPath(path, info.name))}
-                        />
-                      )}
-                    </ContextMenu>
-                  )}
+                  <ContextMenu>
+                    {settings.allow_rename && (
+                      <ContextMenu.Item
+                        label="Rename"
+                        icon={<TextFieldsOutlined />}
+                        onClick={async () => {
+                          modalService.show(RenameModal, { path: joinPath(path, info.name), onSuccess: fetchFiles })
+                        }}
+                      />
+                    )}
+                    {settings.allow_delete && (
+                      <ContextMenu.Item
+                        label="Delete"
+                        icon={<DeleteOutlined />}
+                        onClick={() => remove(joinPath(path, info.name))}
+                      />
+                    )}
+                    <ContextMenu.Item
+                      label="Properties"
+                      icon={<InfoOutlined />}
+                      onClick={() => modalService.show(InfoModal, { path, info, isDir: false })}
+                    />
+                  </ContextMenu>
                 </DirEntry>
               )
             })}
@@ -237,7 +248,7 @@ function DirView() {
       </main>
       <footer className={c.footer}>
         <span>{data && dirInfo(data)}</span>
-        <span>serve v0.3.0</span>
+        <span>made by <a href="https://github.com/nlfmt">nlfmt</a></span>
       </footer>
     </div>
   )

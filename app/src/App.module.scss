@@ -8,7 +8,17 @@
   width: 100%;
   text-align: left;
   font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .version {
+    font-size: 12px;
+    color: var(--text-dark);
+    padding-top: 8px;
+  }
 }
+
 
 .container {
   display: flex;
@@ -16,4 +26,5 @@
   width: clamp(800px, 80%, 1500px);
   max-width: 100%;
   gap: 16px;
+  padding-bottom: 128px;
 }

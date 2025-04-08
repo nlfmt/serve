@@ -1,8 +1,9 @@
 import { useMemo } from "react"
 import c from "./Breadcrumbs.module.scss"
-import { FolderZipOutlined, HomeRounded, QrCodeOutlined } from "@mui/icons-material"
+import { FolderZipOutlined, HomeRounded, } from "@mui/icons-material"
 import { useNavigation } from "@/hooks/useNavigation"
 import ContextMenu from "../ContextMenu/ContextMenu"
+import api from "@/services/api"
 
 function Breadcrumbs() {
   const { path } = useNavigation()
@@ -47,9 +48,11 @@ function Breadcrumbs() {
       <Button variant="primary">Download Folder</Button>
       </a> */}
       <ContextMenu className={c.contextMenu}>
-        <ContextMenu.Item label="Show QR Code" icon={<QrCodeOutlined />} />
-        <ContextMenu.Item label="Download ZIP" icon={<FolderZipOutlined />} />
-        <ContextMenu.Item label="hallo" />
+        <ContextMenu.Item
+          label="Download ZIP"
+          icon={<FolderZipOutlined />}
+          onClick={() => api.downloadFolder(path)}
+        />
       </ContextMenu>
     </div>
   )

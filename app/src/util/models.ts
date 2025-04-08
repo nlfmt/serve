@@ -15,3 +15,7 @@ export type DirInfo = {
   files: FileInfo[]
   dirs: FolderInfo[]
 }
+export type EntryProperties = {
+  accessed?: number;
+  readonly: boolean;
+}

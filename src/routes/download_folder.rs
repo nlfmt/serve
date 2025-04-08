@@ -27,7 +27,6 @@ pub async fn download_folder(
                     Ok(FileResponse { inner: file, file_name })
                 }
                 Err(e) => {
-                    println!("err: {:?}", e);
                     Err((Status::InternalServerError, "Could not create zip file"))
                 }
             }

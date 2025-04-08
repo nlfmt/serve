@@ -85,3 +85,9 @@ pub struct Settings {
     pub allow_rename: bool,
     pub allow_delete: bool,
 }
+
+#[derive(Serialize)]
+pub struct EntryProperties {
+    pub accessed: Option<u64>,
+    pub readonly: bool,
+}

@@ -5,6 +5,7 @@ import c from "./DirEntry.module.scss"
 import { classes } from "@/util/classes"
 import useDropTarget from "@/hooks/useDropTarget"
 import common from "../../styles/common.module.scss"
+import { LinkOutlined } from "@mui/icons-material"
 
 namespace DirEntry {
   export interface Props {
@@ -16,6 +17,7 @@ namespace DirEntry {
       size?: number
       modified?: number
       created?: number
+      is_symlink: boolean
     }
     download?: string
     onDrop?: (e: DragEvent) => void
@@ -44,7 +46,7 @@ function DirEntry({ info, icon, onClick, children, download, onDrop }: DirEntry.
       {...(onDrop ? dropTargetProps : [])}
     >
       <div className={c.icon}>{icon}</div>
-      <span className={c.fileName} title={info.name}>{info.name}</span>
+      <span className={c.fileName} title={info.name}>{info.name}{info.is_symlink && <LinkOutlined />}</span>
       <span className={c.info}>
         {info.size ? sizeString(info.size) : "-"}
       </span>

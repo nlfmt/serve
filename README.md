@@ -52,7 +52,7 @@ pre-built binaries coming soon...
 - [ ] tls support via `--tls-cert` and `--tls-key`
 - [X] context menu
   - [ ] allow creating directories
-  - [ ] file/folder info popup
+  - [X] file/folder info popup
   - [X] delete/rename ? (secured behind flag)
 - [X] add right click action api & args
   - [X] rename
@@ -60,3 +60,5 @@ pre-built binaries coming soon...
   - [ ] create folder
 - [X] add qr code button on mobile
 - [ ] lock zip generation behind flag, add tar/tar.gz
+- [X] show symlink symbol in UI
+- [ ] add good error logging in cli

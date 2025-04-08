@@ -82,6 +82,7 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
                 routes::get_qrcode::get_connection_qrcode,
                 routes::file_ops::rename,
                 routes::file_ops::delete,
+                routes::get_entry_properties::get_entry_properties,
             ],
         )
         .mount("/", routes![routes::get_embedded_file::get_embedded_file])

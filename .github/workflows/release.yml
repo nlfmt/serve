@@ -21,7 +21,6 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10
-          cache: 'pnpm'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -36,19 +35,13 @@ jobs:
         run: pnpm build
         working-directory: ./app
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
       - name: Build Rust project
         run: cargo build --release
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: serve
+          name: serve-${{ matrix.os }}
           path: |
             target/release/serve
             target/release/serve.exe
@@ -79,5 +72,5 @@ jobs:
           tag_name: v${{ steps.get_version.outputs.cargo_version }}
           name: Release v${{ steps.get_version.outputs.cargo_version }}
           files: |
-            artifacts/serve/serve
-            artifacts/serve/serve.exe
+            artifacts/serve-ubuntu-latest/serve
+            artifacts/serve-windows-latest/serve.exe

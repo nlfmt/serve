@@ -1,0 +1,83 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install frontend dependencies
+        run: pnpm install
+        working-directory: ./app
+
+      - name: Build frontend
+        run: pnpm build
+        working-directory: ./app
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build Rust project
+        run: cargo build --release
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: serve
+          path: |
+            target/release/serve
+            target/release/serve.exe
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout (to read Cargo.toml)
+        uses: actions/checkout@v3
+
+      - name: Get version from Cargo.toml
+        id: get_version
+        run: |
+          version=$(grep '^version =' Cargo.toml | head -1 | sed -E 's/.*"(.+)"$/\1/')
+          echo "cargo_version=$version" >> $GITHUB_OUTPUT
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.cargo_version }}
+          name: Release v${{ steps.get_version.outputs.cargo_version }}
+          files: |
+            artifacts/serve/serve
+            artifacts/serve/serve.exe

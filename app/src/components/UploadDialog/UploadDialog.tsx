@@ -3,7 +3,7 @@ import Button from "../Button/Button"
 import Dialog from "../Dialog/Dialog"
 import c from "./UploadDialog.module.scss"
 import { BackupOutlined, DeleteOutline } from "@mui/icons-material"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import useDropTarget from "@/hooks/useDropTarget"
 import { sizeString } from "@/util/util"
 import FileIcon from "../FileIcon/FileIcon"
@@ -27,6 +27,11 @@ function UploadDialog() {
 
   const { path } = useNavigation()
   const [uploadPath, setUploadPath] = useState(path)
+  
+  useEffect(() => {
+    setUploadPath(path)
+  }, [path])
+
 
   const upload = useCallback(() => {
     if (!file) return

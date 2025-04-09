@@ -1,0 +1,1 @@
+watchexec cargo run -- -uqs --allow-rename --allow-delete

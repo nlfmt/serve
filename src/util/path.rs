@@ -33,7 +33,7 @@ fn path_contains_symlink(path: &Path) -> io::Result<bool> {
     Ok(false)
 }
 
-pub fn pretty_path(path: &Path) -> impl Display {
+pub fn pretty_path<'a>(path: &'a Path) -> impl Display + 'a {
     #[cfg(target_os = "windows")]
     {
         let mut path_str = path.to_str().unwrap().to_owned();

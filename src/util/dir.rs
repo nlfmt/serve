@@ -1,6 +1,5 @@
 use std::{
     fs,
-    os::windows::fs::MetadataExt,
     path::Path,
     time::UNIX_EPOCH,
 };
@@ -25,7 +24,7 @@ pub fn read_entries(path: &Path, follow_symlinks: bool) -> std::io::Result<Direc
             Some((file_name, meta, is_symlink))
         })
         .fold(DirectoryContent::default(), |mut res, (name, meta, is_symlink)| {
-            let size = meta.file_size();
+            let size = meta.len();
             let modified = meta
                 .modified()
                 .ok()

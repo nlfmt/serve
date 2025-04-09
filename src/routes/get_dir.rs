@@ -2,7 +2,7 @@ use std::io::ErrorKind;
 
 use rocket::{http::Status, serde::json::Json, State, response::Responder};
 
-use crate::{auth::AuthGuard, models::{AppState, FilesQuery}, util::{dir::read_entries, path::parse_relative_path}};
+use crate::{auth::AuthGuard, log_error, models::{AppState, FilesQuery}, util::{dir::read_entries, path::parse_relative_path}};
 
 #[get("/files?<query..>")]
 pub async fn get_dir_content(_auth: AuthGuard, state: &State<AppState>, query: FilesQuery) -> impl Responder {
@@ -12,7 +12,10 @@ pub async fn get_dir_content(_auth: AuthGuard, state: &State<AppState>, query: F
             Ok(content) => Ok(Json(content)),
             Err(e) => match e.kind() {
                 ErrorKind::NotFound => Err((Status::NotFound, "Directory not found")),
-                _ => Err((Status::InternalServerError, "Could not read directory")),
+                _ => {
+                    log_error!("Could not read directory: {e}");
+                    Err((Status::InternalServerError, "Could not read directory"))
+                },
             },
         },
     }

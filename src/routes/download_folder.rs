@@ -3,7 +3,7 @@ use std::{fs::File, path::Path};
 use rocket::{fs::NamedFile, http::Status, State};
 use walkdir::WalkDir;
 
-use crate::{auth::AuthGuard, models::{AppState, FileResponse}, util::{path::{generate_temp_path, parse_relative_path}, zip::zip_dir}};
+use crate::{auth::AuthGuard, log_error, models::{AppState, FileResponse}, util::{path::{generate_temp_path, parse_relative_path, pretty_path}, zip::zip_dir}};
 
 #[get("/download_folder?<path>")]
 pub async fn download_folder(
@@ -24,9 +24,14 @@ pub async fn download_folder(
                 Ok(_) => {
                     let file = NamedFile::open(tmp_path).await.unwrap();
                     let file_name = format!("{}.zip", path.file_name().unwrap().to_str().unwrap());
+                    println!(
+                        "download zip \x1b[33m{}\x1b[0m",
+                        pretty_path(&path)
+                    );
                     Ok(FileResponse { inner: file, file_name })
                 }
                 Err(e) => {
+                    log_error!("Could not create zip file: {e}");
                     Err((Status::InternalServerError, "Could not create zip file"))
                 }
             }

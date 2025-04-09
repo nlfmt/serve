@@ -16,3 +16,10 @@ pub fn connection_string(interface: IpAddr, port: u16) -> String {
         if cfg!(debug_assertions) { 3001 } else { port }
     )
 }
+
+#[macro_export]
+macro_rules! log_error {
+    ($($arg:tt)*) => {{
+        eprintln!("\x1b[91mError: {}\x1b[0m", format!($($arg)*));
+    }}
+}

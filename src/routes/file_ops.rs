@@ -3,7 +3,7 @@ use std::fs;
 use rocket::{http::Status, serde::json::Json, State};
 use serde::Deserialize;
 
-use crate::{auth::AuthGuard, models::AppState, util::path::parse_relative_path};
+use crate::{auth::AuthGuard, log_error, models::AppState, util::path::parse_relative_path};
 
 #[derive(Deserialize)]
 pub struct RenameQuery {
@@ -20,7 +20,10 @@ pub fn rename(
     let data = data.0;
     match parse_relative_path(&state.root_dir, &data.path, state.symlinks) {
         Some(path) => fs::rename(path, data.to)
-            .map_err(|_e| (Status::InternalServerError, "Could not rename item")),
+            .map_err(|e| {
+                log_error!("Could not rename item: {e}");
+                (Status::InternalServerError, "Could not rename item")
+        }),
         None => Err((Status::BadRequest, "Invalid path")),
     }
 }
@@ -35,7 +38,10 @@ pub fn delete(
         Some(path) => match path.metadata().unwrap().is_dir() {
             true => fs::remove_dir_all(path),
             false => fs::remove_file(path),
-        }.map_err(|_| (Status::InternalServerError, "Could not delete item")),
+        }.map_err(|e| {
+            log_error!("Could not delete item: {e}");
+            (Status::InternalServerError, "Could not delete item")
+        }),
         None => Err((Status::BadRequest, "Invalid path")),
     }
 }

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use rocket::{data::ToByteUnit, http::Status, State};
 use tokio::fs;
 
-use crate::{auth::AuthGuard, models::{AppState, UploadQuery}, util::path::parse_relative_path};
+use crate::{auth::AuthGuard, log_error, models::{AppState, UploadQuery}, util::path::parse_relative_path};
 
 fn validate_upload_path(
     root: &Path,
@@ -73,9 +73,10 @@ pub async fn upload_file(
                 .open(path)
                 .await
                 .map_err(|e| {
+                    log_error!("Failed to open file: {e}");
                     (
                         Status::InternalServerError,
-                        format!("Failed to open file: {}", e.to_string()).to_string(),
+                        "Failed to open file".to_string(),
                     )
                 })?;
 
@@ -83,11 +84,18 @@ pub async fn upload_file(
                 .stream_to(file)
                 .await
                 .map_err(|e| {
+                    log_error!("Failed to write to file: {e}");
                     (
                         Status::InternalServerError,
-                        format!("Failed to write to file: {}", e.to_string()).to_string(),
+                        "Failed to write to file".to_string(),
                     )
                 })?;
+
+            println!(
+                "upload \x1b[33m{}\x1b[0m to \x1b[33m{}\x1b[0m",
+                &query.file_name,
+                &query.path
+            );
             Ok(())
         }
         Err((status, message)) => Err((Status::from_code(status).unwrap(), message.to_string())),

@@ -62,3 +62,4 @@ pre-built binaries coming soon...
 - [ ] lock zip generation behind flag, add tar/tar.gz
 - [X] show symlink symbol in UI
 - [ ] add good error logging in cli
+- [ ] automated compile pipeline with releases

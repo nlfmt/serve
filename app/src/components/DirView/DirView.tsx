@@ -2,15 +2,11 @@ import { classes } from "@/util/classes"
 import c from "./DirView.module.scss"
 import useDropTarget from "@/hooks/useDropTarget"
 import {
-  ArrowBackRounded,
-  ArrowForwardRounded,
-  ArrowUpwardRounded,
   CachedRounded,
   DeleteOutlined,
   FolderOutlined,
   FolderZipOutlined,
   InfoOutlined,
-  ReplayRounded,
   SearchOutlined,
   TextFieldsOutlined,
 } from "@mui/icons-material"
@@ -26,30 +22,34 @@ import TextField from "../TextField/TextField"
 import useToastService from "@/hooks/useToastService"
 import UploadToast from "../UploadToast/UploadToast"
 import ContextMenu from "../ContextMenu/ContextMenu"
-import ErrorToast from "../ErrorToast/ErrorToast"
 import { useSettings } from "@/hooks/useSettings"
 import useModalService from "@/hooks/useModalService"
-import RenameModal from "../RenameModal/RenameModal"
 import InfoModal from "../InfoModal/InfoModal"
+import Navigation from "./Navigation"
+import useFileActions from "@/hooks/useFileActions"
+import Breadcrumbs from "../Breadcrumbs/Breadcrumbs"
 
 function DirView() {
-  const { path, navigate, up } = useNavigation()
+  const { path, navigate } = useNavigation()
   const toastService = useToastService()
   const modalService = useModalService()
   const settings = useSettings()
+  
   const [search, setSearch] = useState("")
   const [dirData, setDirData] = useState<DirInfo | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
+  
   const fetchFiles = useCallback(() => {
     setLoading(true)
     api.fetchFiles(path).then(res => {
       if (res.ok) setDirData(res.value)
-      else setError(res.error)
+        else setError(res.error)
       setLoading(false)
     })
   }, [path])
+
+  const { rename, remove } = useFileActions({ reload: fetchFiles })
 
   useEffect(() => {
     fetchFiles()
@@ -57,7 +57,6 @@ function DirView() {
 
   const data = useMemo(() => {
     if (!dirData) return null
-    // toastService.add(ErrorToast, { error: "hello" })
 
     const searchFn = ({ name }: { name: string }) => {
       return name.toLowerCase().includes(search.toLowerCase())
@@ -78,179 +77,156 @@ function DirView() {
     [path],
   )
 
-  async function remove(path: string) {
-    const res = await api.remove(path)
-    if (res.error) {
-      toastService.add(ErrorToast, { error: res.error })
-    } else {
-      toastService.add(ErrorToast, { error: `${path} was deleted` })
-      fetchFiles()
-    }
-  }
-
   return (
-    <div
-      className={classes(c.fileView, [c.dragover, dropHover])}
-      {...dropTargetProps}
-    >
-      <header className={c.toolbar}>
-        <div className={c.navigation}>
-          <div
-            title="Up one level"
-            className={c.navigationButton}
-            onClick={() => {
-              if (path !== "/") up()
-            }}
-          >
-            <ArrowUpwardRounded />
-          </div>
-          <div
-            title="Previous folder"
-            className={c.navigationButton}
-            onClick={() => window.history.go(-1)}
-          >
-            <ArrowBackRounded />
-          </div>
-          <div
-            title="Next folder"
-            className={c.navigationButton}
-            onClick={() => window.history.go(1)}
-          >
-            <ArrowForwardRounded />
-          </div>
-          <div
-            title="Reload Folder"
-            className={classes(c.navigationButton, [c.rotate, loading])}
-            onClick={() => {
-              if (!loading) fetchFiles()
-            }}
-          >
-            <ReplayRounded />
-          </div>
-        </div>
-        {loading && <span className={c.loading}>Loading...</span>}
-        <TextField
-          className={c.searchBar}
-          icon={<SearchOutlined />}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-      </header>
-      <section className={c.labels}>
-        <span></span>
-        <span>Name</span>
-        <span>Size</span>
-        <span className={common.hideOnMobile}>Modified</span>
-        <span className={common.hideOnTablet}>Created</span>
-      </section>
-      <main className={c.content}>
-        {data ? (
-          <>
-            {data.dirs.map(info => (
-              <DirEntry
-                key={info.name}
-                info={info}
-                icon={<FolderOutlined />}
-                onClick={() => navigate(info.name)}
-                onDrop={e => {
-                  const file = e.dataTransfer.files[0]
-                  if (!file) return
-                  toastService.add(UploadToast, {
-                    file,
-                    path: joinPath(path, info.name),
-                    onSuccess: fetchFiles,
-                  })
-                }}
-              >
-                <ContextMenu>
-                  {settings.allow_rename && <ContextMenu.Item
-                    label="Rename Folder"
-                    icon={<TextFieldsOutlined />}
-                    onClick={async () => {
-                      modalService.show(RenameModal, {
-                        path: joinPath(path, info.name),
-                        onSuccess: fetchFiles,
-                      })
-                    }}
-                  />}
-                  {settings.allow_delete && <ContextMenu.Item
-                    label="Delete Folder"
-                    icon={<DeleteOutlined />}
-                    onClick={() => remove(joinPath(path, info.name))}
-                  />}
-                  <ContextMenu.Item
-                    label="Download ZIP"
-                    icon={<FolderZipOutlined />}
-                    onClick={() => api.downloadFolder(joinPath(path, info.name))}
-                  />
-                  <ContextMenu.Item
-                    label="Properties"
-                    icon={<InfoOutlined />}
-                    onClick={() => modalService.show(InfoModal, { path, info, isDir: true })}
-                  />
-                </ContextMenu>
-              </DirEntry>
-            ))}
-            {data.files.map(info => {
-              const params = new URLSearchParams({
-                path: joinPath(path, info.name),
-              })
-              return (
+    <>
+      <Breadcrumbs reload={fetchFiles} />
+      <div
+        className={classes(c.fileView, [c.dragover, dropHover])}
+        {...dropTargetProps}
+      >
+        <header className={c.toolbar}>
+          <Navigation
+            className={c.navigation}
+            reload={fetchFiles}
+            loading={loading}
+          />
+          {loading && <span className={c.loading}>Loading...</span>}
+          <TextField
+            className={c.searchBar}
+            icon={<SearchOutlined />}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </header>
+        <section className={c.labels}>
+          <span></span>
+          <span>Name</span>
+          <span>Size</span>
+          <span className={common.hideOnMobile}>Modified</span>
+          <span className={common.hideOnTablet}>Created</span>
+        </section>
+        <main className={c.content}>
+          {data ? (
+            <>
+              {data.dirs.map(info => (
                 <DirEntry
                   key={info.name}
                   info={info}
-                  icon={<FileIcon file={info.name} />}
-                  download={`/api/download?${params.toString()}`}
+                  icon={<FolderOutlined />}
+                  onClick={() => navigate(info.name)}
+                  onDrop={e => {
+                    const file = e.dataTransfer.files[0]
+                    if (!file) return
+                    toastService.add(UploadToast, {
+                      file,
+                      path: joinPath(path, info.name),
+                      onSuccess: fetchFiles,
+                    })
+                  }}
                 >
                   <ContextMenu>
-                    {settings.allow_rename && (
+                    {settings.rename && (
                       <ContextMenu.Item
-                        label="Rename"
+                        label="Rename Folder"
                         icon={<TextFieldsOutlined />}
-                        onClick={async () => {
-                          modalService.show(RenameModal, { path: joinPath(path, info.name), onSuccess: fetchFiles })
-                        }}
+                        onClick={() => rename(joinPath(path, info.name))}
                       />
                     )}
-                    {settings.allow_delete && (
+                    {settings.delete && (
                       <ContextMenu.Item
-                        label="Delete"
+                        label="Delete Folder"
                         icon={<DeleteOutlined />}
                         onClick={() => remove(joinPath(path, info.name))}
                       />
                     )}
                     <ContextMenu.Item
+                      label="Download ZIP"
+                      icon={<FolderZipOutlined />}
+                      onClick={() =>
+                        api.downloadFolder(joinPath(path, info.name))
+                      }
+                    />
+                    <ContextMenu.Item
                       label="Properties"
                       icon={<InfoOutlined />}
-                      onClick={() => modalService.show(InfoModal, { path, info, isDir: false })}
+                      onClick={() =>
+                        modalService.show(InfoModal, {
+                          path,
+                          info,
+                          isDir: true,
+                        })
+                      }
                     />
                   </ContextMenu>
                 </DirEntry>
-              )
-            })}
-            {data.dirs.length + data.files.length == 0 &&
-              (search ? (
-                <span className={c.placeholder}>
-                  No Files found for '{search}'
-                </span>
-              ) : (
-                <span className={c.placeholder}>No files</span>
               ))}
-          </>
-        ) : (
-          <span className={c.placeholder}>{error || "Loading..."}</span>
-        )}
-        {loading && (
-          <div className={c.loadingSpinner}>
-            <CachedRounded />
-          </div>
-        )}
-      </main>
-      <footer className={c.footer}>
-        <span>{data && dirInfo(data)}</span>
-        <span>made by <a href="https://github.com/nlfmt">nlfmt</a></span>
-      </footer>
-    </div>
+              {data.files.map(info => {
+                const params = new URLSearchParams({
+                  path: joinPath(path, info.name),
+                })
+                return (
+                  <DirEntry
+                    key={info.name}
+                    info={info}
+                    icon={<FileIcon file={info.name} />}
+                    download={`/api/download?${params.toString()}`}
+                  >
+                    <ContextMenu>
+                      {settings.rename && (
+                        <ContextMenu.Item
+                          label="Rename"
+                          icon={<TextFieldsOutlined />}
+                          onClick={() => rename(joinPath(path, info.name))}
+                        />
+                      )}
+                      {settings.delete && (
+                        <ContextMenu.Item
+                          label="Delete"
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(joinPath(path, info.name))}
+                        />
+                      )}
+                      <ContextMenu.Item
+                        label="Properties"
+                        icon={<InfoOutlined />}
+                        onClick={() =>
+                          modalService.show(InfoModal, {
+                            path,
+                            info,
+                            isDir: false,
+                          })
+                        }
+                      />
+                    </ContextMenu>
+                  </DirEntry>
+                )
+              })}
+              {data.dirs.length + data.files.length == 0 &&
+                (search ? (
+                  <span className={c.placeholder}>
+                    No Files found for '{search}'
+                  </span>
+                ) : (
+                  <span className={c.placeholder}>No files</span>
+                ))}
+            </>
+          ) : (
+            <span className={c.placeholder}>{error || "Loading..."}</span>
+          )}
+          {loading && (
+            <div className={c.loadingSpinner}>
+              <CachedRounded />
+            </div>
+          )}
+        </main>
+        <footer className={c.footer}>
+          <span>{data && dirInfo(data)}</span>
+          <span>
+            made by <a href="https://github.com/nlfmt">nlfmt</a>
+          </span>
+        </footer>
+      </div>
+    </>
   )
 }
 

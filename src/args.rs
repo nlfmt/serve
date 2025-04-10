@@ -31,10 +31,12 @@ pub struct ServeArgs {
     #[arg(short = 's', long, default_value_t = false, help = "Resolve symlinks instead of ignoring them (dangerous!)")]
     pub symlinks: bool,
     
-    #[arg(long, default_value_t = false, help = "Allow users to rename files/folders")]
-    pub allow_rename: bool,
-    #[arg(long, default_value_t = false, help = "Allow users to delete files/folders")]
-    pub allow_delete: bool,
+    #[arg(short = 'o', long, default_value_t = false, help = "Allow users to overwrite files during upload")]
+    pub overwrite: bool,
+    #[arg(short = 'r', long, default_value_t = false, help = "Allow users to rename files/folders")]
+    pub rename: bool,
+    #[arg(short = 'd', long, default_value_t = false, help = "Allow users to delete files/folders")]
+    pub delete: bool,
 
 
     #[arg(

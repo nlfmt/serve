@@ -37,13 +37,13 @@ function UploadDialog() {
     if (!file) return
       toastService.add(UploadToast, { file, path })
     close()
-  }, [path, file])
+  }, [path, file, toastService, close])
 
   return (
     <>
       <Button onClick={show}>Upload</Button>
       <Dialog {...dialogProps}>
-        <div className={c.container}>
+        <form className={c.container}>
           <header className={c.header}>
             <BackupOutlined className={c.icon} />
             <span>Upload a File</span>
@@ -92,6 +92,7 @@ function UploadDialog() {
                   <TextField
                     className={c.pathInput}
                     placeholder="File Path"
+                    autoFocus={true}
                     value={uploadPath}
                     onChange={e => setUploadPath(e.target.value)}
                   />
@@ -101,6 +102,7 @@ function UploadDialog() {
           </div>
           <footer className={c.buttons}>
             <Button
+              type="button"
               variant="secondary"
               onClick={() => {
                 setFile(null)
@@ -111,7 +113,7 @@ function UploadDialog() {
             </Button>
             {file && <Button onClick={upload}>Upload</Button>}
           </footer>
-        </div>
+        </form>
       </Dialog>
     </>
   )

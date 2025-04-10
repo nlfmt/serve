@@ -1,0 +1,31 @@
+.navigation {
+  display: flex;
+  align-items: center;
+  color: var(--primary);
+  gap: 4px;
+
+  .navigationButton {
+    border-radius: 8px;
+    background-color: rgba(var(--primary-), 0.1);
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+
+    &.rotate svg {
+      transform-origin: 50% 55%;
+      animation: rotate 0.4s linear infinite;
+    }
+
+    &:hover {
+      border: 2px solid var(--primary);
+    }
+
+    & svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}

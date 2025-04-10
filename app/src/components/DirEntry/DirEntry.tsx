@@ -46,10 +46,11 @@ function DirEntry({ info, icon, onClick, children, download, onDrop }: DirEntry.
       {...(onDrop ? dropTargetProps : [])}
     >
       <div className={c.icon}>{icon}</div>
-      <span className={c.fileName} title={info.name}>{info.name}{info.is_symlink && <LinkOutlined />}</span>
-      <span className={c.info}>
-        {info.size ? sizeString(info.size) : "-"}
+      <span className={c.fileName} title={info.name}>
+        <span className={c.fileNameLabel}>{info.name}</span>
+        {info.is_symlink && <LinkOutlined />}
       </span>
+      <span className={c.info}>{info.size ? sizeString(info.size) : "-"}</span>
       <Timestamp className={common.hideOnMobile} value={modified} />
       <Timestamp className={common.hideOnTablet} value={created} />
       <div className={c.actions}>{children}</div>

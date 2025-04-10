@@ -6,6 +6,8 @@ import c from "./UploadToast.module.scss"
 import { durationString, sizeString } from "@/util/util"
 import { classes } from "@/util/classes"
 import Button from "../Button/Button"
+import { useSettings } from "@/hooks/useSettings"
+import { CancelOutlined } from "@mui/icons-material"
 
 namespace UploadToast {
   export interface Props {
@@ -15,8 +17,9 @@ namespace UploadToast {
   }
 }
 
-function UploadToast(props: UploadToast.Props) {
+function UploadToast({ file, path, onSuccess }: UploadToast.Props) {
   const { remove } = useToastContext()
+  const { overwrite } = useSettings()
   const [progress, setProgress] = useState<AxiosProgressEvent | null>(null)
   const [error, setError] = useState<{ code: number; text: string } | null>(
     null,
@@ -27,8 +30,8 @@ function UploadToast(props: UploadToast.Props) {
   const upload = useCallback((overwrite = false) => {
     api
       .uploadFile(
-        props.path,
-        props.file,
+        path,
+        file,
         overwrite,
         ctrl.current.signal,
         setProgress,
@@ -36,22 +39,21 @@ function UploadToast(props: UploadToast.Props) {
       .then(res => {
         if (res.ok) {
           setSuccess(true)
-          props.onSuccess?.()
-          setTimeout(remove, 3000)
+          onSuccess?.()
+          setTimeout(remove, 8000)
         } else {
           setError(res.error)
         }
       })
-  }, [props])
+  }, [file, path, onSuccess, remove])
 
   useEffect(() => {
     upload(false)
   }, [upload])
 
-  function _abort() {
+  function abort() {
     ctrl.current.abort()
-    setError({ code: 400, text: "Aborted" })
-    setTimeout(remove, 3000)
+    setTimeout(remove, 5000)
   }
 
   return (
@@ -59,14 +61,14 @@ function UploadToast(props: UploadToast.Props) {
       <header className={c.header}>
         <span className={c.title}>
           {error ? "" : "Uploading "}
-          <span title={props.file.name} className={classes([c.green, !error])}>
-            {props.file.name}
+          <span title={file.name} className={classes([c.green, !error])}>
+            {file.name}
           </span>
         </span>
         {progress && !error && !success && (
-          <span className={c.time}>
-            {durationString(progress.estimated ?? 0)}
-          </span>
+          <div onClick={abort} className={c.abort}>
+            <CancelOutlined />
+          </div>
         )}
       </header>
       {!(error || success) && (
@@ -75,9 +77,9 @@ function UploadToast(props: UploadToast.Props) {
             <span className={c.stats}>
               <span>
                 {sizeString(progress?.loaded)} /{" "}
-                {progress.total ? sizeString(props.file.size) : "?? B"}
+                {progress.total ? sizeString(file.size) : "?? B"}
               </span>
-              <span>{sizeString(progress.rate ?? 0)}/s</span>
+              <span>{sizeString(progress.rate ?? 0)}/s, {durationString(progress.estimated ?? 0)} left</span>
             </span>
           )}
           <div className={c.progress}>
@@ -99,7 +101,7 @@ function UploadToast(props: UploadToast.Props) {
           >
             Cancel
           </Button>
-          {error.code === 409 ? (
+          {error.code === 409 && overwrite ? (
             <Button
               size="small"
               onClick={() => {

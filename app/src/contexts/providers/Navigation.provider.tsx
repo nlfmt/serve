@@ -4,14 +4,22 @@ import { joinPath, removeTrailingSlash } from "@/util/util"
 
 export type Navigation = ReturnType<typeof useNavigationLogic>
 
+const legacy = !window.navigation
+
 function useNavigationLogic(initial: string) {
   const [path, setPath] = useState(initial)
   const isNavigating = useRef(false)
 
+  function _navigate(path: string) {
+    window.history.pushState(null, "", path)
+    // for firefox (🤮)
+    if (legacy) setPath(path)
+  }
+
   useEffect(() => {
     const ctrl = new AbortController()
 
-    window.navigation.addEventListener(
+    window.navigation?.addEventListener(
       "navigate",
       e => {
         if (e.destination.url.includes("?path=")) return
@@ -27,8 +35,8 @@ function useNavigationLogic(initial: string) {
   const navigate = useCallback(
     (folder: string) => {
       if (isNavigating.current) return
-      isNavigating.current = true
-      window.history.pushState(null, "", joinPath(path, folder))
+      if (!legacy) isNavigating.current = true
+      _navigate(joinPath(path, folder))
     },
     [path, isNavigating],
   )
@@ -37,10 +45,36 @@ function useNavigationLogic(initial: string) {
     if (path === "/" || isNavigating.current) return
     isNavigating.current = true
     const newPath = removeTrailingSlash(path).split("/").slice(0, -1).join("/")
-    window.history.pushState(null, "", newPath || "/")
+    _navigate(newPath || "/")
   }, [path, isNavigating])
 
-  return { path, navigate, up }
+  const home = () => {
+    _navigate("/")
+  }
+  
+  const prev = () => {
+    if (legacy) {
+      window.addEventListener(
+        "popstate",
+        () => setPath(window.location.pathname),
+        { once: true },
+      )
+    }
+    window.history.back()
+  }
+
+  const next = () => {
+    if (legacy) {
+      window.addEventListener(
+        "popstate",
+        () => setPath(window.location.pathname),
+        { once: true },
+      )
+    }
+    window.history.forward()
+  }
+
+  return { path, navigate, up, home, prev, next }
 }
 
 export function NavigationProvider(props: { children: ReactNode }) {

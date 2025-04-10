@@ -54,15 +54,16 @@ async function uploadFile(
       case 400:
         return Result.Err({ code, text: "Invalid Path" })
       default:
-        return Result.Err({ code, text: "File Upload failed" })
+        return Result.Err({ code, text: "Upload Aborted" })
     }
   }
 }
 
 export interface Settings {
   upload: boolean
-  allow_rename: boolean
-  allow_delete: boolean
+  overwrite: boolean
+  rename: boolean
+  delete: boolean
 }
 
 async function getSettings(): Promise<Result<Settings, string>> {
@@ -123,6 +124,18 @@ async function downloadFolder(path: string) {
   document.body.removeChild(a)
 }
 
+async function createFolder(path: string): Promise<Result<null, string>> {
+  const query = new URLSearchParams({ path })
+  return await axios
+    .post(`${API_URL}/folder?${query.toString()}`)
+    .then(() => {
+      return Result.Ok(null)
+    })
+    .catch((e: AxiosError) => {
+      return Result.Err(String(e.response?.data) || e.message)
+    })
+}
+
 export default {
   fetchFiles,
   uploadFile,
@@ -131,4 +144,5 @@ export default {
   remove,
   getEntryProperties,
   downloadFolder,
+  createFolder,
 }

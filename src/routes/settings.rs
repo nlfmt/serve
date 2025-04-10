@@ -7,7 +7,8 @@ use crate::{auth::AuthGuard, models::{AppState, Settings}};
 pub async fn get_settings(_auth: AuthGuard, state: &State<AppState>) -> Json<Settings> {
     Json(Settings {
         upload: state.upload,
-        allow_delete: state.allow_delete,
-        allow_rename: state.allow_rename,
+        overwrite: state.overwrite,
+        delete: state.delete,
+        rename: state.rename,
     })
 }

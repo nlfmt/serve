@@ -1,0 +1,20 @@
+.container {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    
+    span {
+        font-size: 14px;
+        overflow: hidden;
+        word-wrap: break-word;
+    }
+    
+    &[data-type=error] {
+        color: var(--error);
+    }
+    &[data-type=success] {
+        color: var(--primary);
+    }
+}

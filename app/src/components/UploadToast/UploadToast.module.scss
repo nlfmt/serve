@@ -21,6 +21,14 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    
+    .abort {
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-dark);
+      }
+    }
   }
 
   .progress {

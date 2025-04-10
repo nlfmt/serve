@@ -44,12 +44,16 @@
   }
   
   & .fileName {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     display: flex;
     align-items: center;
     gap: 8px;
+    overflow: hidden;
+    
+    .fileNameLabel {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
     
     svg {
       width:  16px;

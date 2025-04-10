@@ -12,8 +12,9 @@ pub struct AppState {
     pub upload: bool,
     pub symlinks: bool,
 
-    pub allow_rename: bool,
-    pub allow_delete: bool,
+    pub overwrite: bool,
+    pub rename: bool,
+    pub delete: bool,
 }
 
 pub struct AuthState {
@@ -82,8 +83,9 @@ impl<'r> rocket::response::Responder<'r, 'r> for FileResponse {
 #[derive(Serialize)]
 pub struct Settings {
     pub upload: bool,
-    pub allow_rename: bool,
-    pub allow_delete: bool,
+    pub overwrite: bool,
+    pub rename: bool,
+    pub delete: bool,
 }
 
 #[derive(Serialize)]

@@ -1,6 +1,5 @@
 import c from "./App.module.scss"
 import DirView from "./components/DirView/DirView"
-import Breadcrumbs from "./components/Breadcrumbs/Breadcrumbs"
 import UploadDialog from "./components/UploadDialog/UploadDialog"
 import ToastManager from "./components/ToastManager/ToastManager"
 import { useEffect, useState } from "react"
@@ -13,8 +12,9 @@ import ModalManager from "./components/ModalManager/ModalManager"
 
 function App() {
   const [settings, setSettings] = useState<Settings>({
-    allow_delete: false,
-    allow_rename: false,
+    overwrite: false,
+    delete: false,
+    rename: false,
     upload: false,
   })
 
@@ -35,7 +35,6 @@ function App() {
                 <QRCodeDialog />
                 {settings?.upload && <UploadDialog />}
               </header>
-              <Breadcrumbs />
               <DirView />
             </div>
           </ModalManager>

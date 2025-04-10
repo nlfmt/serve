@@ -6,23 +6,25 @@ use tokio::fs;
 use crate::{auth::AuthGuard, log_error, models::{AppState, UploadQuery}, util::path::parse_relative_path};
 
 fn validate_upload_path(
-    root: &Path,
     path: &str,
     file_name: &str,
     overwrite: bool,
-    allow_symlinks: bool,
-) -> Result<PathBuf, (u16, &'static str)> {
+    state: &State<AppState>
+) -> Result<PathBuf, (Status, &'static str)> {
+    if overwrite && !state.overwrite {
+        return Err((Status::Forbidden, "Overwriting files is not allowed"))
+    }
     let file_path = Path::new(path)
         .join(file_name)
         .to_str()
-        .and_then(|file_path| parse_relative_path(root, file_path, allow_symlinks));
+        .and_then(|file_path| parse_relative_path(&state.root_dir, file_path, state.symlinks));
 
     match file_path {
         Some(path) => match path.exists() && !overwrite {
-            true => Err((409, "File already exists")),
+            true => Err((Status::Conflict, "File already exists")),
             false => Ok(path),
         },
-        None => Err((400, "Invalid Path")),
+        None => Err((Status::BadRequest, "Invalid Path")),
     }
 }
 
@@ -33,14 +35,13 @@ pub async fn pre_upload_file(_auth: AuthGuard, state: &State<AppState>, query: U
     }
 
     match validate_upload_path(
-        &state.root_dir,
         &query.path,
         &query.file_name,
         query.overwrite,
-        state.symlinks,
+        state,
     ) {
         Ok(_) => Status::Ok,
-        Err((status, _)) => Status::from_code(status).unwrap(),
+        Err((status, _)) => status,
     }
 }
 
@@ -56,11 +57,10 @@ pub async fn upload_file(
     }
 
     match validate_upload_path(
-        &state.root_dir,
         &query.path,
         &query.file_name,
         query.overwrite,
-        state.symlinks,
+        state,
     ) {
         Ok(path) => {
             if let Some(parent_dir) = path.parent() {
@@ -70,7 +70,7 @@ pub async fn upload_file(
             let file = tokio::fs::OpenOptions::new()
                 .write(true)
                 .create(true)
-                .open(path)
+                .open(&path)
                 .await
                 .map_err(|e| {
                     log_error!("Failed to open file: {e}");
@@ -83,11 +83,13 @@ pub async fn upload_file(
             data.open(10.gigabytes())
                 .stream_to(file)
                 .await
-                .map_err(|e| {
-                    log_error!("Failed to write to file: {e}");
+                .map_err(|_e| {
+                    if let Err(e) = std::fs::remove_file(&path) {
+                        log_error!("Failed to clean up temporary upload file '{}': {e}", path.display());
+                    }
                     (
                         Status::InternalServerError,
-                        "Failed to write to file".to_string(),
+                        "Upload Failed".to_string(),
                     )
                 })?;
 
@@ -98,6 +100,6 @@ pub async fn upload_file(
             );
             Ok(())
         }
-        Err((status, message)) => Err((Status::from_code(status).unwrap(), message.to_string())),
+        Err((status, message)) => Err((status, message.to_string())),
     }
 }

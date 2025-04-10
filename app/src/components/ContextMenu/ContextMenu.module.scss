@@ -3,6 +3,7 @@
     height: 100%;
     background-color: transparent !important;
     anchor-name: var(--anchor-id);
+    position: relative;
 
     &:hover, &:focus-within {
         background-color: var(--bg3) !important;
@@ -19,6 +20,12 @@
     inset: unset;
     position-anchor: var(--anchor-id);
     padding: 8px;
+
+    // for compatibility
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
     top: calc(anchor(bottom) + 8px);
     right: anchor(right);
     background-color: var(--bg2);

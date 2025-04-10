@@ -51,15 +51,19 @@ pre-built binaries coming soon...
 - [ ] support for custom headers
 - [ ] tls support via `--tls-cert` and `--tls-key`
 - [X] context menu
-  - [ ] allow creating directories
+  - [X] allow creating directories
   - [X] file/folder info popup
   - [X] delete/rename ? (secured behind flag)
 - [X] add right click action api & args
   - [X] rename
   - [X] delete
-  - [ ] create folder
+  - [X] create folder
 - [X] add qr code button on mobile
 - [ ] lock zip generation behind flag, add tar/tar.gz
 - [X] show symlink symbol in UI
 - [ ] add good error logging in cli
 - [ ] automated compile pipeline with releases
+- [ ] recursive file search (streamed)
+- [ ] custom download ui & progress
+- [ ] chunked uploads & download
+  - [ ] resumable uploads & downloads

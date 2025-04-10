@@ -65,8 +65,9 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
             interface: args.interface,
             symlinks: args.symlinks,
             upload: args.upload,
-            allow_delete: args.allow_delete,
-            allow_rename: args.allow_rename,
+            overwrite: args.overwrite,
+            delete: args.delete,
+            rename: args.rename,
         })
         .attach(AuthFairing)
         .attach(cors)
@@ -83,6 +84,7 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
                 routes::file_ops::rename,
                 routes::file_ops::delete,
                 routes::get_entry_properties::get_entry_properties,
+                routes::create_folder::create_folder,
             ],
         )
         .mount("/", routes![routes::get_embedded_file::get_embedded_file])

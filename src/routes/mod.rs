@@ -7,3 +7,4 @@ pub mod get_embedded_file;
 pub mod get_qrcode;
 pub mod file_ops;
 pub mod get_entry_properties;
+pub mod create_folder;

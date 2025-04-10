@@ -54,7 +54,7 @@ function ToastManager(props: ToastManager.Props) {
       {props.children}
       <div className={c.toasts}>
         {toasts.map(toast => (
-          <Toast toast={toast} remove={remove} />
+          <Toast key={toast.id} toast={toast} remove={remove} />
         ))}
       </div>
     </ToastServiceContext.Provider>
@@ -75,7 +75,7 @@ function Toast({
   }, [remove, id])
 
   return (
-    <ToastContext.Provider key={id} value={{ remove: _remove }}>
+    <ToastContext.Provider value={{ remove: _remove }}>
       <div data-state={state} className={c.toast}>
         <Toast {...props} />
       </div>

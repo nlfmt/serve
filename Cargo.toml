@@ -1,6 +1,6 @@
 [package]
 name = "nlfmt-serve"
-version = "0.3.2"
+version = "0.4.0"
 description = "quickly serve files from a directory in your local network"
 readme = "README.md"
 license = "MIT"

@@ -19,6 +19,8 @@ Quickly serve and receive files to/from anyone on your local network, using an e
 Using cargo:
 ```sh
 cargo install nlfmt-serve
+```
+```sh
 serve --help
 ```
 
@@ -30,10 +32,15 @@ cd serve
 cd app && pnpm i && pnpm build
 cd .. && cargo install --path .
 ```
+```sh
+serve --help
+```
 
-pre-built binaries coming soon...
+Using the pre-built binaries:
+Go to [the latest release](https://github.com/nlfmt/serve/releases/latest) and download the file for your operating system. Move it to any folder you want and add it to your PATH.
 
-## Todo
+
+## Feature Plan
 
 - [X] add download folder as zip or tar.gz
 - [X] Uploads

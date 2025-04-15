@@ -2,7 +2,6 @@
 
 Quickly serve and receive files to/from anyone on your local network, using an easy web ui
 
-![serve cli example](media/serve-cli-example.png)
 ![serve ui example](media/serve-ui-example.png)
 
 ## Features

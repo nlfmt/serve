@@ -31,7 +31,7 @@ function App() {
           <ModalManager>
             <div className={c.container}>
               <header className={c.header}>
-                <h2 className={c.title}><span>serve</span><span className={c.version}>v0.4.1</span></h2>
+                <h2 className={c.title}><span>serve</span><span className={c.version}>v0.4.2</span></h2>
                 <QRCodeDialog />
                 {settings?.upload && <UploadDialog />}
               </header>

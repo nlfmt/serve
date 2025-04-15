@@ -3,7 +3,7 @@ import Button from "../Button/Button"
 import Dialog from "../Dialog/Dialog"
 import c from "./UploadDialog.module.scss"
 import { BackupOutlined, DeleteOutline } from "@mui/icons-material"
-import { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import useDropTarget from "@/hooks/useDropTarget"
 import { sizeString } from "@/util/util"
 import FileIcon from "../FileIcon/FileIcon"
@@ -31,13 +31,22 @@ function UploadDialog() {
   useEffect(() => {
     setUploadPath(path)
   }, [path])
-
-
-  const upload = useCallback(() => {
+  
+const upload = useCallback(
+  (e: React.SyntheticEvent) => {
+    e.preventDefault()
     if (!file) return
-      toastService.add(UploadToast, { file, path })
+
+    toastService.add(UploadToast, {
+      file,
+      path,
+      onSuccess: () => window.location.reload(),
+    })
+    setFile(null)
     close()
-  }, [path, file, toastService, close])
+  },
+  [path, file, toastService, close],
+)
 
   return (
     <>

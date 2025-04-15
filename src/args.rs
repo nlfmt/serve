@@ -56,6 +56,9 @@ pub struct ServeArgs {
         value_parser(parse_auth_file)
     )]
     pub auth_file: Vec<Vec<Auth>>,
+    
+    #[arg(long, default_value_t = false, help = "Update serve")]
+    pub update: bool,
 
     pub root_dir: Option<String>,
 }

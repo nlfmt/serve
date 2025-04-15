@@ -1,6 +1,6 @@
 [package]
 name = "nlfmt-serve"
-version = "0.4.2"
+version = "0.4.3"
 description = "quickly serve files from a directory in your local network"
 readme = "README.md"
 license = "MIT"
@@ -16,6 +16,11 @@ include = [
     "app/dist/**"
 ]
 
+[features]
+default = []
+# enable this to update using github releases instead of using cargo
+standalone = []
+
 [[bin]]
 name = "serve"
 
@@ -26,10 +31,12 @@ clap = { version = "4.5.31", features = ["derive"] }
 local-ip-address = "0.6.3"
 mime_guess = "2.0.5"
 qrcode-generator = "5.0.0"
+reqwest = { version = "0.12.15", features = ["json", "blocking"] }
 rocket = { version = "0.5.1", features = ["json"] }
 rocket-multipart-form-data = "0.10.7"
 rocket_cors = "0.6.0"
 rust-embed = "8.6.0"
+semver = "1.0.26"
 serde = { version = "1.0.219", features = ["derive"] }
 thiserror = "2.0.12"
 tokio = { version = "1.44.0", features = ["full"] }

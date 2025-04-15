@@ -1,4 +1,4 @@
 cd app
 pnpm build
 cd ..
-cargo build --release --
+cargo build --release $args

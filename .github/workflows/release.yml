@@ -36,7 +36,7 @@ jobs:
         working-directory: ./app
 
       - name: Build Rust project
-        run: cargo build --release
+        run: cargo build --release --features standalone
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

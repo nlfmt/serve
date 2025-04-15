@@ -7,6 +7,7 @@ mod routes;
 mod utils;
 mod util;
 mod color;
+mod update;
 
 pub use args::ServeArgs;
 
@@ -14,7 +15,7 @@ pub use args::ServeArgs;
 extern crate rocket;
 
 use auth::AuthFairing;
-use color::{GREEN, LBLUE, RST, GRAY};
+use color::{GREEN, LBLUE, RST, GRAY, ORANGE};
 use qrcode::qr_string;
 use qrcode_generator::QrCodeEcc;
 use rocket::{
@@ -23,6 +24,7 @@ use rocket::{
     Config,
 };
 use rocket_cors::AllowedOrigins;
+use update::{check_for_update, update};
 use util::path::{get_root_dir, pretty_path};
 
 use std::{env, net::IpAddr, path::PathBuf, process::Command};
@@ -34,6 +36,30 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
     let root_dir = get_root_dir(&args.root_dir)?;
     let addr = connection_string(args.interface, args.port);
     let auths = args.auths();
+    
+    if args.update {
+        match check_for_update().await {
+            Ok(Some(upd)) => update(upd),
+            Ok(None) => println!("serve is already up to date!"),
+            Err(e) => eprintln!("{ORANGE}Error: could not check for updates: {e}{RST}"),
+        };
+        return Ok(());
+    }
+    
+    tokio::spawn(async move {
+        match check_for_update().await {
+            Ok(Some(update)) => {
+                println!("{GREEN}A new version of serve is available!{RST}");
+                println!("➜ {GRAY}version: {RST}v{}", update.version);
+                println!("➜ run 'serve --update' to install\n");
+            },
+            Ok(None) => {},
+            Err(e) => {
+                println!("{ORANGE}Error: could not check for updates: {e}{RST}");
+                return;
+            }
+        }
+    });
     
     let app_state = AppState {
         root_dir: root_dir.to_path_buf(),

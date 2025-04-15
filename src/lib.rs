@@ -6,6 +6,7 @@ mod qrcode;
 mod routes;
 mod utils;
 mod util;
+mod color;
 
 pub use args::ServeArgs;
 
@@ -13,6 +14,7 @@ pub use args::ServeArgs;
 extern crate rocket;
 
 use auth::AuthFairing;
+use color::{GREEN, LBLUE, RST, GRAY};
 use qrcode::qr_string;
 use qrcode_generator::QrCodeEcc;
 use rocket::{
@@ -32,6 +34,17 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
     let root_dir = get_root_dir(&args.root_dir)?;
     let addr = connection_string(args.interface, args.port);
     let auths = args.auths();
+    
+    let app_state = AppState {
+        root_dir: root_dir.to_path_buf(),
+        port: args.port,
+        interface: args.interface,
+        symlinks: args.symlinks,
+        upload: args.upload,
+        overwrite: args.overwrite || args.modify,
+        delete: args.delete || args.modify,
+        rename: args.rename || args.modify,
+    };
 
     if args.qr {
         let matrix =
@@ -40,14 +53,26 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
     }
 
     if args.symlinks {
-        println!("\x1b[91mSecurity Warning:\x1b[0m You've enabled symlinks, this can allow users to access arbitrary files on your system. Use with caution.")
+        println!("\x1b[91mSecurity Warning:\x1b[0m You've enabled symlinks, this can allow users to access arbitrary files on your system. Use with caution.\n")
     }
+    
+    let mut perms = Vec::new();
+    if app_state.symlinks { perms.push("symlinks") }
+    if app_state.upload { perms.push("upload") }
+    if app_state.overwrite { perms.push("overwrite") }
+    if app_state.rename { perms.push("rename") }
+    if app_state.delete { perms.push("delete") }
 
     println!(
-        "serving \x1b[33m{}\x1b[0m on \x1b[33m{}\x1b[0m",
+        "{GREEN}serve running {RST}@ {LBLUE}{}{RST}\n➜ {GRAY}root: {RST}{}",
+        addr,
         pretty_path(&root_dir),
-        addr
     );
+
+    if perms.len() > 0 {
+        println!("➜ {GRAY}enabled: {RST}{}", perms.join(", "))
+    }
+    println!("");
 
     let cors = rocket_cors::CorsOptions {
         allowed_origins: AllowedOrigins::all(),
@@ -59,16 +84,7 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
 
     let server = rocket::custom(cfg)
         .manage(AuthState { auths })
-        .manage(AppState {
-            root_dir: root_dir.to_path_buf(),
-            port: args.port,
-            interface: args.interface,
-            symlinks: args.symlinks,
-            upload: args.upload,
-            overwrite: args.overwrite,
-            delete: args.delete,
-            rename: args.rename,
-        })
+        .manage(app_state)
         .attach(AuthFairing)
         .attach(cors)
         .mount(

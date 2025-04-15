@@ -4,6 +4,7 @@ use rocket::{data::ToByteUnit, http::Status, State};
 use tokio::fs;
 
 use crate::{auth::AuthGuard, log_error, models::{AppState, UploadQuery}, util::path::parse_relative_path};
+use crate::color::{GREEN, LBLUE};
 
 fn validate_upload_path(
     path: &str,
@@ -94,7 +95,7 @@ pub async fn upload_file(
                 })?;
 
             println!(
-                "upload \x1b[33m{}\x1b[0m to \x1b[33m{}\x1b[0m",
+                "{GREEN}upload\x1b[0m {LBLUE}{}\x1b[0m to {LBLUE}{}\x1b[0m",
                 &query.file_name,
                 &query.path
             );

@@ -1,7 +1,7 @@
 import useModalContext from "@/hooks/useModalContext";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import c from "./TextInputModal.module.scss"
 
 namespace TextInputModal {
@@ -10,20 +10,27 @@ namespace TextInputModal {
     placeholder?: string
     confirmText: string
     onConfirm?: (value: string) => void
+    initialValue?: string
   }
 }
 
 function TextInputModal(props: TextInputModal.Props) {
   const { close } = useModalContext()
-  // const toastService = useToastService()
-
-  const [value, setValue] = useState("")
-
+  const [value, setValue] = useState(props.initialValue ?? "")
+  
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.select()
+    }
+  }, [])
 
   return (
     <form className={c.container}>
       <span>{props.title}</span>
       <TextField
+        ref={inputRef}
         autoFocus={true}
         className={c.input}
         value={value}

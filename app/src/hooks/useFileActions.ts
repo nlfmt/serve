@@ -23,6 +23,7 @@ export default function useFileActions({ reload }: { reload: () => void }) {
       title: `Rename ${path}`,
       confirmText: "Rename",
       placeholder: "Enter new name..",
+      initialValue: path.split("/").at(-1),
       onConfirm: async value => {
         const res = await api.rename(path, value)
         if (res.ok) {

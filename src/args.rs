@@ -37,6 +37,8 @@ pub struct ServeArgs {
     pub rename: bool,
     #[arg(short = 'd', long, default_value_t = false, help = "Allow users to delete files/folders")]
     pub delete: bool,
+    #[arg(short = 'm', long, default_value_t = false, help = "Enables overwriting, renaming and deleting")]
+    pub modify: bool,
 
 
     #[arg(

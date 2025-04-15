@@ -4,6 +4,7 @@ use rocket::{fs::NamedFile, http::Status, State};
 use walkdir::WalkDir;
 
 use crate::{auth::AuthGuard, log_error, models::{AppState, FileResponse}, util::{path::{generate_temp_path, parse_relative_path, pretty_path}, zip::zip_dir}};
+use crate::color::{BLUE, LBLUE};
 
 #[get("/download_folder?<path>")]
 pub async fn download_folder(
@@ -25,7 +26,7 @@ pub async fn download_folder(
                     let file = NamedFile::open(tmp_path).await.unwrap();
                     let file_name = format!("{}.zip", path.file_name().unwrap().to_str().unwrap());
                     println!(
-                        "download zip \x1b[33m{}\x1b[0m",
+                        "{BLUE}download zip {LBLUE}{}\x1b[0m",
                         pretty_path(&path)
                     );
                     Ok(FileResponse { inner: file, file_name })

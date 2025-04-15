@@ -1,6 +1,7 @@
 use rocket::{fs::NamedFile, http::Status, State};
 
 use crate::{auth::AuthGuard, models::{AppState, FileResponse}, util::path::{parse_relative_path, pretty_path}};
+use crate::color::{BLUE, LBLUE};
 
 #[get("/download?<path>")]
 pub async fn download_file(
@@ -12,9 +13,8 @@ pub async fn download_file(
         Some(path) => {
             let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
             println!(
-                "download \x1b[33m{}\x1b[0m from \x1b[33m{}\x1b[0m",
-                &file_name,
-                pretty_path(path.parent().unwrap())
+                "{BLUE}download {LBLUE}{}\x1b[0m",
+                pretty_path(&path)
             );
             let file = NamedFile::open(&path).await.unwrap();
             Ok(FileResponse {

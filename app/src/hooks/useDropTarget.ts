@@ -1,13 +1,14 @@
 import { DragEvent, useCallback, useRef, useState } from "react";
 
 
-export default function useDropTarget(onDrop?: (e: DragEvent) => void, deps?: React.DependencyList) {
+export default function useDropTarget(opts: { allowed?: (e: DragEvent) => boolean, onDrop?: (e: DragEvent) => void }, deps?: React.DependencyList) {
     const count = useRef(0)
     const [dropHover, setDropHover] = useState(false)
     
     function onDragEnter(e: DragEvent) {
         e.preventDefault()
         e.stopPropagation()
+        if (opts.allowed && !opts.allowed(e)) return
         count.current += 1
         if (!dropHover && count.current > 0) setDropHover(true)
     }
@@ -15,6 +16,7 @@ export default function useDropTarget(onDrop?: (e: DragEvent) => void, deps?: Re
     function onDragLeave(e: DragEvent) {
         e.preventDefault()
         e.stopPropagation()
+        if (opts.allowed && !opts.allowed(e)) return
         count.current -= 1
         if (dropHover && count.current <= 0) setDropHover(false)
     }
@@ -28,9 +30,9 @@ export default function useDropTarget(onDrop?: (e: DragEvent) => void, deps?: Re
         e.stopPropagation()
         count.current = 0
         setDropHover(false)
-        onDrop?.(e)
+        opts.onDrop?.(e)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onDrop, ...(deps || [])])
+    }, [opts.onDrop, ...(deps || [])])
 
     return {
       dropHover,
@@ -38,7 +40,7 @@ export default function useDropTarget(onDrop?: (e: DragEvent) => void, deps?: Re
         onDragEnter,
         onDragLeave,
         onDragOver,
-        onDrop: onDrop ? _onDrop : undefined,
+        onDrop: opts.onDrop ? _onDrop : undefined,
       },
     }
 }

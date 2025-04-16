@@ -1,0 +1,22 @@
+.container {
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 32px;
+    
+    .buttons {
+        margin-top: auto;
+        display: flex;
+        align-items: stretch;
+        justify-content: flex-end;
+        height: 48px;
+        gap: 16px;
+        
+        & > button {
+            flex-grow: 1;
+            max-width: 150px;
+        }
+    
+    }
+}

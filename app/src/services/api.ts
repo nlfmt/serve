@@ -114,6 +114,17 @@ async function remove(path: string): Promise<Result<null, string>> {
     })
 }
 
+async function move(path: string, dest: string): Promise<Result<null, string>> {
+  return await axios
+    .put(API_URL + "/move", { path, dest })
+    .then(() => {
+      return Result.Ok(null)
+    })
+    .catch((e: AxiosError) => {
+      return Result.Err(String(e.response?.data) || e.message)
+    })
+}
+
 async function downloadFolder(path: string) {
   const query = new URLSearchParams({ path })
   const a = document.createElement("a")
@@ -142,6 +153,7 @@ export default {
   getSettings,
   rename,
   remove,
+  move,
   getEntryProperties,
   downloadFolder,
   createFolder,

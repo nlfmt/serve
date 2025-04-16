@@ -49,7 +49,7 @@ function DirView() {
     })
   }, [path])
 
-  const { rename, remove } = useFileActions({ reload: fetchFiles })
+  const { rename, remove, move } = useFileActions({ reload: fetchFiles })
 
   useEffect(() => {
     fetchFiles()
@@ -69,10 +69,12 @@ function DirView() {
   }, [search, dirData])
 
   const { dropHover, dropTargetProps } = useDropTarget(
-    async (e: DragEvent) => {
-      const file = e.dataTransfer.files[0]
-      if (!file) return
-      toastService.add(UploadToast, { file, path, onSuccess: fetchFiles })
+    {
+      onDrop: async (e: DragEvent) => {
+        const file = e.dataTransfer.files[0]
+        if (!file) return
+        toastService.add(UploadToast, { file, path, onSuccess: fetchFiles })
+      },
     },
     [path],
   )
@@ -116,12 +118,16 @@ function DirView() {
                   onClick={() => navigate(info.name)}
                   onDrop={e => {
                     const file = e.dataTransfer.files[0]
-                    if (!file) return
-                    toastService.add(UploadToast, {
-                      file,
-                      path: joinPath(path, info.name),
-                      onSuccess: fetchFiles,
-                    })
+                    const srcPath = e.dataTransfer.getData("path")
+                    if (file) {
+                      toastService.add(UploadToast, {
+                        file,
+                        path: joinPath(path, info.name),
+                        onSuccess: fetchFiles,
+                      })
+                    } else if (srcPath) {
+                      move(srcPath, joinPath(path, info.name))
+                    }
                   }}
                 >
                   <ContextMenu>

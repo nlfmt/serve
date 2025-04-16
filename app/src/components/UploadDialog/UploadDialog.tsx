@@ -20,9 +20,11 @@ function UploadDialog() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [file, setFile] = useState<File | null>(null)
-  const { dropHover, dropTargetProps } = useDropTarget(e => {
-    const file = e.dataTransfer.files[0]
-    setFile(file)
+  const { dropHover, dropTargetProps } = useDropTarget({
+    onDrop: e => {
+      const file = e.dataTransfer.files[0]
+      setFile(file)
+    },
   })
 
   const { path } = useNavigation()

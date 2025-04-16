@@ -1,11 +1,13 @@
 import { DragEvent, ReactNode, useMemo } from "react"
 import { DateTime } from "luxon"
-import { sizeString } from "@/util/util"
+import { joinPath, sizeString } from "@/util/util"
 import c from "./DirEntry.module.scss"
 import { classes } from "@/util/classes"
 import useDropTarget from "@/hooks/useDropTarget"
 import common from "../../styles/common.module.scss"
 import { LinkOutlined } from "@mui/icons-material"
+import { useNavigation } from "@/hooks/useNavigation"
+import { useSettings } from "@/hooks/useSettings"
 
 namespace DirEntry {
   export interface Props {
@@ -25,13 +27,18 @@ namespace DirEntry {
 }
 
 function DirEntry({ info, icon, onClick, children, download, onDrop }: DirEntry.Props) {
+  const { path } = useNavigation()
+  const settings = useSettings()
   const [modified, created] = useMemo(() => {
     return [
       info.modified ? DateTime.fromSeconds(info.modified) : null,
       info.created ? DateTime.fromSeconds(info.created) : null,
     ]
   }, [info.modified, info.created])
-  const { dropHover, dropTargetProps } = useDropTarget(onDrop)
+
+  const { dropHover, dropTargetProps } = useDropTarget({
+    onDrop,
+  })
 
   return (
     <a
@@ -39,6 +46,13 @@ function DirEntry({ info, icon, onClick, children, download, onDrop }: DirEntry.
       className={classes(c.entry, [c.dropHover, dropHover])}
       href={download}
       download={!!download}
+      draggable={settings.rename}
+      onDragStart={e => {
+        if (!settings.rename) return
+        // setup for moving file/folder
+        e.dataTransfer.clearData()
+        e.dataTransfer.setData("path", joinPath(path, info.name))
+      }}
       onClick={e => {
         if (e.defaultPrevented) return
         onClick?.()

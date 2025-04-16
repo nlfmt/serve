@@ -17,6 +17,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    padding: 4px;
     padding-left: 8px;
     position: relative;
     
@@ -41,6 +42,10 @@
   cursor: pointer;
   z-index: 2;
   
+  &[data-drophover=true] {
+    outline: 2px dashed var(--primary);
+  }
+  
   & > svg {
     fill: var(--primary);
   }
@@ -64,6 +69,11 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
+  position: relative;
+   
+  &[data-drophover=true] {
+    outline: 2px dashed var(--primary);
+  }
 
   &:hover {
     background-color: rgba(var(--primary-), 0.1);

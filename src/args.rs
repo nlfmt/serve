@@ -33,11 +33,11 @@ pub struct ServeArgs {
     
     #[arg(short = 'o', long, default_value_t = false, help = "Allow users to overwrite files during upload")]
     pub overwrite: bool,
-    #[arg(short = 'r', long, default_value_t = false, help = "Allow users to rename files/folders")]
+    #[arg(short = 'r', long, default_value_t = false, help = "Allow users to move & rename files/folders")]
     pub rename: bool,
     #[arg(short = 'd', long, default_value_t = false, help = "Allow users to delete files/folders")]
     pub delete: bool,
-    #[arg(short = 'm', long, default_value_t = false, help = "Enables overwriting, renaming and deleting")]
+    #[arg(short = 'm', long, default_value_t = false, help = "Enables overwriting, renaming, moving and deleting")]
     pub modify: bool,
 
 

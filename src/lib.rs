@@ -125,6 +125,7 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
                 routes::get_qrcode::get_connection_qrcode,
                 routes::file_ops::rename,
                 routes::file_ops::delete,
+                routes::file_ops::move_item,
                 routes::get_entry_properties::get_entry_properties,
                 routes::create_folder::create_folder,
             ],

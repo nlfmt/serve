@@ -9,6 +9,9 @@ import useModalService from "@/hooks/useModalService"
 import TextInputModal from "../TextInputModal/TextInputModal"
 import Toast from "../Toast/Toast"
 import { joinPath } from "@/util/util"
+import useDropTarget from "@/hooks/useDropTarget"
+import UploadToast from "../UploadToast/UploadToast"
+import useFileActions from "@/hooks/useFileActions"
 
 function Breadcrumbs(props: { reload: () => void }) {
   const { path, home } = useNavigation()
@@ -36,40 +39,55 @@ function Breadcrumbs(props: { reload: () => void }) {
     })
   }
 
+  const { move } = useFileActions({ reload: props.reload })
+  
+  const { dropHover, dropTargetProps } = useDropTarget({
+    onDrop: e => {
+      const file = e.dataTransfer.files[0]
+      const srcPath = e.dataTransfer.getData("path")
+      if (file) {
+        toastService.add(UploadToast, {
+          file,
+          path: "/"
+        })
+      } else if (srcPath) {
+        move(srcPath, "/")
+      }
+    },
+  })
+
   return (
     <div className={c.breadcrumbs}>
-      <div
-        className={c.homeIcon}
-        onClick={home}
-      >
+      <div data-drophover={dropHover} className={c.homeIcon} onClick={home} {...dropTargetProps}>
         <HomeRounded sx={{ fontSize: 20 }} />
       </div>
 
       <div className={c.path}>
-        {segments.map((s, i) => (
-          <span
-            key={i}
-            className={s === "/" ? c.pathSlash : c.pathSegment}
-            onClick={
-              s !== "/"
-                ? () => {
-                    window.history.pushState(
-                      null,
-                      "",
-                      segments.slice(0, i + 1).join(""),
-                    )
-                  }
-                : undefined
-            }
-          >
-            {s}
-          </span>
-        ))}
+        {segments.map((s, i) =>
+          s === "/" ? (
+            <span key={i} className={c.pathSlash}>
+              {s}
+            </span>
+          ) : (
+            <Segment
+              key={i}
+              reload={props.reload}
+              move={move}
+              path={segments.slice(0, i + 1).join("")}
+              onClick={() => {
+                window.history.pushState(
+                  null,
+                  "",
+                  segments.slice(0, i + 1).join(""),
+                )
+              }}
+            >
+              {s}
+            </Segment>
+          ),
+        )}
       </div>
-      
-      {/* <a download target="_blank" href={downloadUrl} className={c.downloadButton}>
-      <Button variant="primary">Download Folder</Button>
-      </a> */}
+
       <ContextMenu className={c.contextMenu}>
         <ContextMenu.Item
           label="Download ZIP"
@@ -83,6 +101,42 @@ function Breadcrumbs(props: { reload: () => void }) {
         />
       </ContextMenu>
     </div>
+  )
+}
+
+function Segment(props: {
+  children: string
+  path: string
+  onClick: () => void
+  reload: () => void
+  move: (path: string, dest: string) => void
+}) {
+  const toastService = useToastService()
+
+  const { dropHover, dropTargetProps } = useDropTarget({
+    onDrop: e => {
+      const file = e.dataTransfer.files[0]
+      const srcPath = e.dataTransfer.getData("path")
+      if (file) {
+        toastService.add(UploadToast, {
+          file,
+          path: props.path,
+        })
+      } else if (srcPath) {
+        props.move(srcPath, props.path)
+      }
+    },
+  })
+
+  return (
+    <span
+      data-drophover={dropHover}
+      className={c.pathSegment}
+      onClick={props.onClick}
+      {...dropTargetProps}
+    >
+      {props.children}
+    </span>
   )
 }
 

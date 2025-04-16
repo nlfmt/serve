@@ -103,7 +103,7 @@ serve --auth-file ./mylogins.txt
 - [ ] chunked uploads & download
   - [ ] resumable uploads & downloads
 - [X] insert prev name in rename dialog and select the text
-- [ ] allow moving files/folders using drag and drop
+- [X] allow moving files/folders using drag and drop
 - [X] add update command
   - [X] check install source, either use cargo or github release
   - [X] show update notice when running

@@ -1,6 +1,6 @@
 use rocket::{serde::json::Json, State};
 
-use crate::{auth::AuthGuard, models::{AppState, Settings}};
+use crate::{auth::AuthGuard, models::Settings, state::AppState};
 
 
 #[get("/settings")]

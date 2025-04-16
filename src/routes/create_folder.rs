@@ -2,10 +2,10 @@ use rocket::{http::Status, State};
 use tokio::fs;
 
 use crate::color::{GREEN, LBLUE};
+use crate::state::AppState;
 use crate::{
     auth::AuthGuard,
     log_error,
-    models::AppState,
     util::path::{parse_relative_path, pretty_path},
 };
 

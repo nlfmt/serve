@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 use rocket::{data::ToByteUnit, http::Status, State};
 use tokio::fs;
 
-use crate::{auth::AuthGuard, log_error, models::{AppState, UploadQuery}, util::path::parse_relative_path};
+use crate::state::AppState;
+use crate::{auth::AuthGuard, log_error, models::UploadQuery, util::path::parse_relative_path};
 use crate::color::{GREEN, LBLUE};
 
 fn validate_upload_path(

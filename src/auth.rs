@@ -1,7 +1,7 @@
 use base64::{prelude::BASE64_STANDARD, Engine};
 use rocket::{fairing::{Fairing, Info, Kind}, http::{Header, Status}, request::{FromRequest, Outcome}, Request, Response, State};
 
-use crate::models::AuthState;
+use crate::state::AppState;
 
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum AuthParseError {
@@ -58,8 +58,8 @@ impl<'r> FromRequest<'r> for AuthGuard {
     type Error = ();
     
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        let auths = match req.guard::<&State<AuthState>>().await {
-            Outcome::Success(auths) => &auths.auths,
+        let auths = match req.guard::<&State<AppState>>().await {
+            Outcome::Success(app_state) => &app_state.auths,
             _ => return Outcome::Error((Status::InternalServerError, ())),
         };
 

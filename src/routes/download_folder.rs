@@ -3,7 +3,7 @@ use std::{fs::File, path::Path};
 use rocket::{fs::NamedFile, http::Status, State};
 use walkdir::WalkDir;
 
-use crate::{auth::AuthGuard, log_error, models::{AppState, FileResponse}, util::{path::{generate_temp_path, parse_relative_path, pretty_path}, zip::zip_dir}};
+use crate::{auth::AuthGuard, log_error, models::FileResponse, state::AppState, util::{path::{generate_temp_path, parse_relative_path, pretty_path}, zip::zip_dir}};
 use crate::color::{BLUE, LBLUE};
 
 #[get("/download_folder?<path>")]

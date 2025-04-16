@@ -1,6 +1,6 @@
 use rocket::{fs::NamedFile, http::Status, State};
 
-use crate::{auth::AuthGuard, models::{AppState, FileResponse}, util::path::{parse_relative_path, pretty_path}};
+use crate::{auth::AuthGuard, models::FileResponse, state::AppState, util::path::{parse_relative_path, pretty_path}};
 use crate::color::{BLUE, LBLUE};
 
 #[get("/download?<path>")]

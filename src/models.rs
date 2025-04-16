@@ -1,25 +1,4 @@
-use std::{net::IpAddr, path::PathBuf};
-
 use rocket::{fs::NamedFile, http::Header, response, serde::Serialize, Response};
-
-use crate::auth::Auth;
-
-pub struct AppState {
-    pub root_dir: PathBuf,
-    pub port: u16,
-    pub interface: IpAddr,
-
-    pub upload: bool,
-    pub symlinks: bool,
-
-    pub overwrite: bool,
-    pub rename: bool,
-    pub delete: bool,
-}
-
-pub struct AuthState {
-    pub auths: Vec<Auth>
-}
 
 #[derive(Serialize)]
 pub struct FileInfo {

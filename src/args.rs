@@ -63,16 +63,6 @@ pub struct ServeArgs {
     pub root_dir: Option<String>,
 }
 
-impl ServeArgs {
-    pub fn auths(&self) -> Vec<Auth> {
-        self.auth
-            .iter()
-            .chain(self.auth_file.iter().flatten())
-            .cloned()
-            .collect()
-    }
-}
-
 fn parse_interface(s: &str) -> Result<IpAddr, AddrParseError> {
     s.parse()
 }

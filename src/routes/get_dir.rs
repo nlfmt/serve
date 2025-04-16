@@ -2,7 +2,7 @@ use std::io::ErrorKind;
 
 use rocket::{http::Status, serde::json::Json, State, response::Responder};
 
-use crate::{auth::AuthGuard, log_error, models::{AppState, FilesQuery}, util::{dir::read_entries, path::parse_relative_path}};
+use crate::{auth::AuthGuard, log_error, models::FilesQuery, state::AppState, util::{dir::read_entries, path::parse_relative_path}};
 
 #[get("/files?<query..>")]
 pub async fn get_dir_content(_auth: AuthGuard, state: &State<AppState>, query: FilesQuery) -> impl Responder {

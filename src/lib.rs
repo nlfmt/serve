@@ -1,76 +1,39 @@
 mod args;
 mod assets;
 mod auth;
+mod color;
 mod models;
 mod qrcode;
 mod routes;
-mod utils;
+mod state;
+mod updater;
 mod util;
-mod color;
-mod update;
+mod utils;
+mod server;
 
 pub use args::ServeArgs;
 
 #[macro_use]
 extern crate rocket;
 
-use auth::AuthFairing;
-use color::{GREEN, LBLUE, RST, GRAY, ORANGE};
+use color::{GRAY, GREEN, LBLUE, RST};
 use qrcode::qr_string;
 use qrcode_generator::QrCodeEcc;
-use rocket::{
-    config::Ident,
-    data::{Limits, ToByteUnit},
-    Config,
-};
-use rocket_cors::AllowedOrigins;
-use update::{check_for_update, update};
+use server::launch_server;
+use state::AppState;
 use util::path::{get_root_dir, pretty_path};
-
-use std::{env, net::IpAddr, path::PathBuf, process::Command};
-
-use models::{AppState, AuthState};
 use utils::connection_string;
 
 pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
+    if args.update {
+        return updater::run_update().await.map_err(anyhow::Error::msg);
+    }
+
+    updater::run_background_check();
+
     let root_dir = get_root_dir(&args.root_dir)?;
     let addr = connection_string(args.interface, args.port);
-    let auths = args.auths();
-    
-    if args.update {
-        match check_for_update().await {
-            Ok(Some(upd)) => update(upd),
-            Ok(None) => println!("serve is already up to date!"),
-            Err(e) => eprintln!("{ORANGE}Error: could not check for updates: {e}{RST}"),
-        };
-        return Ok(());
-    }
-    
-    tokio::spawn(async move {
-        match check_for_update().await {
-            Ok(Some(update)) => {
-                println!("{GREEN}A new version of serve is available!{RST}");
-                println!("➜ {GRAY}version: {RST}v{}", update.version);
-                println!("➜ run 'serve --update' to install\n");
-            },
-            Ok(None) => {},
-            Err(e) => {
-                println!("{ORANGE}Error: could not check for updates: {e}{RST}");
-                return;
-            }
-        }
-    });
-    
-    let app_state = AppState {
-        root_dir: root_dir.to_path_buf(),
-        port: args.port,
-        interface: args.interface,
-        symlinks: args.symlinks,
-        upload: args.upload,
-        overwrite: args.overwrite || args.modify,
-        delete: args.delete || args.modify,
-        rename: args.rename || args.modify,
-    };
+    let app_state = AppState::new(&args, &root_dir);
 
     if args.qr {
         let matrix =
@@ -81,13 +44,6 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
     if args.symlinks {
         println!("\x1b[91mSecurity Warning:\x1b[0m You've enabled symlinks, this can allow users to access arbitrary files on your system. Use with caution.\n")
     }
-    
-    let mut perms = Vec::new();
-    if app_state.symlinks { perms.push("symlinks") }
-    if app_state.upload { perms.push("upload") }
-    if app_state.overwrite { perms.push("overwrite") }
-    if app_state.rename { perms.push("rename") }
-    if app_state.delete { perms.push("delete") }
 
     println!(
         "{GREEN}serve running {RST}@ {LBLUE}{}{RST}\n➜ {GRAY}root: {RST}{}",
@@ -95,77 +51,32 @@ pub async fn run(args: ServeArgs) -> anyhow::Result<()> {
         pretty_path(&root_dir),
     );
 
+    let perms = app_state.get_perms();
     if perms.len() > 0 {
         println!("➜ {GRAY}enabled: {RST}{}", perms.join(", "))
     }
     println!("");
 
-    let cors = rocket_cors::CorsOptions {
-        allowed_origins: AllowedOrigins::all(),
-        ..Default::default()
-    }
-    .to_cors()?;
-
-    let cfg = get_config(args.interface, args.port);
-
-    let server = rocket::custom(cfg)
-        .manage(AuthState { auths })
-        .manage(app_state)
-        .attach(AuthFairing)
-        .attach(cors)
-        .mount(
-            "/api",
-            routes![
-                routes::get_dir::get_dir_content,
-                routes::download::download_file,
-                routes::download_folder::download_folder,
-                routes::upload::pre_upload_file,
-                routes::upload::upload_file,
-                routes::settings::get_settings,
-                routes::get_qrcode::get_connection_qrcode,
-                routes::file_ops::rename,
-                routes::file_ops::delete,
-                routes::file_ops::move_item,
-                routes::get_entry_properties::get_entry_properties,
-                routes::create_folder::create_folder,
-            ],
-        )
-        .mount("/", routes![routes::get_embedded_file::get_embedded_file])
-        .launch();
-
     // run vite dev server in debug mode
-    if cfg!(debug_assertions) {
-        let project_root =
-            PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"));
+    #[cfg(debug_assertions)]
+    launch_dev_server();
 
-        std::env::set_current_dir(&project_root).unwrap();
-        Command::new("powershell")
-            .arg("-c")
-            .arg("pnpm dev")
-            .current_dir("./app")
-            .spawn()
-            .unwrap();
-    }
-
-    server.await?;
+    launch_server(args, app_state).await?;
     Ok(())
 }
 
-fn get_config(address: IpAddr, port: u16) -> Config {
-    Config {
-        address,
-        port,
-        ident: Ident::try_new("serve").unwrap(),
+#[cfg(debug_assertions)]
+fn launch_dev_server() {
+    use std::{path::PathBuf, process::Command};
 
-        limits: Limits::default()
-            .limit("data-form", 10.gigabytes())
-            .limit("file", 10.gigabytes()),
+    let project_root =
+        PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"));
 
-        log_level: if cfg!(debug_assertions) {
-            rocket::config::LogLevel::Normal
-        } else {
-            rocket::config::LogLevel::Off
-        },
-        ..Default::default()
-    }
+    std::env::set_current_dir(&project_root).unwrap();
+    Command::new("powershell")
+        .arg("-c")
+        .arg("pnpm dev")
+        .current_dir("./app")
+        .spawn()
+        .unwrap();
 }

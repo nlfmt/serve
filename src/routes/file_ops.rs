@@ -30,17 +30,26 @@ pub fn rename(
 
     let data = data.0;
     match parse_relative_path(&state.root_dir, &data.path, state.symlinks) {
-        Some(path) => match fs::rename(&path, &data.to) {
-            Ok(_) => {
-                println!("{ORANGE}rename {LBLUE}{} \x1b[0m-> {LBLUE}{}\x1b[0m", pretty_path(&path), data.to);
-                Ok(())
+        Some(path) => {
+            let parent_dir = path.parent().ok_or_else(|| (Status::BadRequest, "Invalid source path"))?;
+            let dest_path = parent_dir.join(&data.to);
+            
+            if dest_path.exists() && !state.overwrite {
+                return Err((Status::Forbidden, "Overwriting is not enabled"));
             }
-            Err(e) => {
-                log_error!("Could not rename item: {e}");
-                Err((Status::InternalServerError, "Could not rename item"))
+            
+            match fs::rename(&path, &dest_path) {
+                Ok(_) => {
+                    println!("{ORANGE}rename {LBLUE}{} \x1b[0m-> {LBLUE}{}\x1b[0m", pretty_path(&path), pretty_path(&dest_path));
+                    Ok(())
+                }
+                Err(e) => {
+                    log_error!("Could not rename item: {e}");
+                    Err((Status::InternalServerError, "Could not rename item"))
+                }
             }
         }
-        None => Err((Status::BadRequest, "Invalid path")),
+        None => Err((Status::BadRequest, "Invalid source path")),
     }
 }
 
@@ -92,6 +101,10 @@ pub fn move_item(
             let item_name = path.file_name().ok_or_else(|| (Status::BadRequest, "Invalid path"))?;
             let dest_path = dest.join(item_name);
             
+            if dest_path.exists() && !state.overwrite {
+                return Err((Status::Forbidden, "Overwriting is not enabled"));
+            }
+
             let res = fs::rename(&path, &dest_path);
             match res {
                 Ok(_) => {

@@ -2,7 +2,7 @@ import { DirInfo, EntryProperties as EntryProperties } from "@/util/models"
 import { Result } from "@/util/result"
 import axios, { AxiosError, AxiosProgressEvent } from "axios"
 
-const API_URL = `http://${location.host}/api`
+const API_URL = `${location.protocol}//${location.host}/api`
 
 async function fetchFiles(path: string): Promise<Result<DirInfo, string>> {
   const query = new URLSearchParams({ path })

@@ -77,7 +77,7 @@ pub async fn run_update() -> Result<(), String> {
             Ok(_) => println!("\n{GREEN}Update successful!{RST}"),
             Err(e) => return Err(e),
         },
-        Ok(None) => println!("{GREEN}already up to date!{RST}"),
+        Ok(None) => println!("{GREEN}v{} - already up to date!{RST}", env!("CARGO_PKG_VERSION")),
         Err(e) => log_error!("could not check for updates: {e}"),
     };
     Ok(())
